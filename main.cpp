@@ -1,7 +1,9 @@
 #include <iostream>
+#include "Game.hpp"
 
 int main()
 {
-    std::cout << "Hello, World!" << std::endl;
+    auto game = new Game();
+    delete game;
     return 0;
 }
