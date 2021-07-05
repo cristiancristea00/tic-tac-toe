@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "Action.hpp"
+
 #include <array>
 #include <vector>
 #include <random>
@@ -29,7 +31,6 @@ class Game
 
     using Player = uint8_t;
     using Value = int8_t;
-    using Action = std::pair<uint8_t, uint8_t>;
     using Board = std::array<std::array<BoardState, 3>, 3>;
 
     Board game_board;
@@ -41,6 +42,7 @@ class Game
 
  private:
     static BoardState BoardStateFromPlayer(Player) noexcept;
+    static char CharFromBoardState(BoardState) noexcept;
     static bool Is_Board_Full(Board const &) noexcept;
     static bool Is_Winner(Player, Board const &) noexcept;
     static Player Get_Current_Player(Board const &) noexcept;
@@ -55,5 +57,6 @@ class Game
 
  public:
     Game() noexcept = default;
+    void DrawBoard() const noexcept;
 };
 

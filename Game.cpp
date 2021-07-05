@@ -12,11 +12,11 @@
 namespace std
 {
 template <>
-struct hash<Game::Action>
+struct hash<Action>
 {
-    std::size_t operator()(std::pair<uint8_t, uint8_t> const & pair) const noexcept
+    std::size_t operator()(Action const & action) const noexcept
     {
-        return std::hash<uint8_t>()(pair.first) ^ std::hash<uint8_t>()(pair.second);
+        return std::hash<uint8_t>()(action.row) ^ std::hash<uint8_t>()(action.column);
     }
 };
 }
@@ -34,6 +34,22 @@ Game::BoardState Game::BoardStateFromPlayer(Game::Player player) noexcept
     else
     {
         return BoardState::UNKNOWN;
+    }
+}
+
+char Game::CharFromBoardState(BoardState board_state) noexcept
+{
+    switch (board_state)
+    {
+
+        case BoardState::EMPTY:
+            return ' ';
+        case BoardState::X:
+            return 'X';
+        case BoardState::O:
+            return '0';
+        case BoardState::UNKNOWN:
+            return 'U';
     }
 }
 
@@ -81,7 +97,7 @@ Game::Player Game::Get_Current_Player(Board const & current_board) noexcept
     return (moves % 2 == 0) ? PLAYER_X : PLAYER_0;
 }
 
-std::vector<Game::Action> Game::Get_Actions(Board const & current_board) noexcept
+std::vector<Action> Game::Get_Actions(Board const & current_board) noexcept
 {
     std::vector<Action> actions;
     actions.reserve(BOARD_SIZE * BOARD_SIZE);
@@ -91,7 +107,7 @@ std::vector<Game::Action> Game::Get_Actions(Board const & current_board) noexcep
         {
             if (current_board[i][j] == BoardState::EMPTY)
             {
-                actions.emplace_back(i, j);
+                actions.emplace_back(i, j, Action::Type::VALID);
             }
         }
     }
@@ -138,7 +154,7 @@ Game::Value Game::Utility(Board const & current_board) noexcept
 Game::Board Game::Get_Result_Board(Board const & current_board, Action const & action) noexcept
 {
     auto action_board = current_board;
-    action_board[action.first][action.second] = BoardStateFromPlayer(Get_Current_Player(current_board));
+    action_board[action.row][action.column] = BoardStateFromPlayer(Get_Current_Player(current_board));
     return action_board;
 }
 
@@ -172,7 +188,7 @@ Game::Value Game::Get_Max_Value(Board const & current_board) const noexcept
     return value;
 }
 
-Game::Action Game::Minimax(Board const & current_board) const noexcept
+Action Game::Minimax(Board const & current_board) const noexcept
 {
     if (Is_Terminal(current_board))
     {
@@ -230,6 +246,25 @@ Game::Action Game::Minimax(Board const & current_board) const noexcept
     std::vector<std::pair<Action, Value>> result(possible_moves.begin(), possible_moves.end());
     std::sample(result.begin(), result.end(), std::back_inserter(result), 1, std::mt19937 {std::random_device {}()});
     return result.back().first;
+}
+void Game::DrawBoard() const noexcept
+{
+    static constexpr std::string_view horizontal_separator = "-------------\n";
+    static constexpr std::string_view grid_format = "| %c | %c | %c |\n";
+
+    printf(horizontal_separator.data());
+    printf(grid_format.data(), CharFromBoardState(game_board[0][0]),
+           CharFromBoardState(game_board[0][1]),
+           CharFromBoardState(game_board[0][2]));
+    printf(horizontal_separator.data());
+    printf(grid_format.data(), CharFromBoardState(game_board[1][0]),
+           CharFromBoardState(game_board[1][1]),
+           CharFromBoardState(game_board[1][2]));
+    printf(horizontal_separator.data());
+    printf(grid_format.data(), CharFromBoardState(game_board[2][0]),
+           CharFromBoardState(game_board[2][1]),
+           CharFromBoardState(game_board[2][2]));
+    printf(horizontal_separator.data());
 }
 
 
