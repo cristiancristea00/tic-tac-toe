@@ -11,6 +11,8 @@
 
 #include "Action.hpp"
 
+#include <fmt/core.h>
+
 #include <array>
 #include <vector>
 #include <random>
@@ -29,16 +31,19 @@ class Game
         UNKNOWN
     };
 
+    static constexpr uint8_t BOARD_SIZE = 3;
+
     using Player = uint8_t;
     using Value = int8_t;
-    using Board = std::array<std::array<BoardState, 3>, 3>;
+    using Board = std::array<std::array<BoardState, BOARD_SIZE>, BOARD_SIZE>;
 
-    Board game_board;
-
-    static constexpr uint8_t BOARD_SIZE = 3;
     static constexpr Player PLAYER_X = 'X';
     static constexpr Player PLAYER_0 = '0';
     static constexpr Player PLAYER_UNKNOWN = 'U';
+
+    Board game_board {};
+    Player user = PLAYER_UNKNOWN;
+    bool ai_turn = false;
 
  private:
     static BoardState BoardStateFromPlayer(Player) noexcept;
@@ -50,13 +55,14 @@ class Game
     static Player Get_Winner(Board const &) noexcept;
     static bool Is_Terminal(Board const &) noexcept;
     static Value Utility(Board const &) noexcept;
-    static Board Get_Result_Board(Board const &, Action const &) noexcept;
+    static Board Get_Result_Board(Board const &, Action const &);
     Value Get_Min_Value(Board const &) const noexcept;
     Value Get_Max_Value(Board const &) const noexcept;
     Action Minimax(Board const &) const noexcept;
+    void DrawBoard() const noexcept;
 
  public:
-    Game() noexcept = default;
-    void DrawBoard() const noexcept;
+    Game() noexcept;
+    void Play();
 };
 

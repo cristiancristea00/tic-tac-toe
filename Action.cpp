@@ -12,7 +12,7 @@
 
 Action::Action(uint8_t row, uint8_t column, Type type) noexcept : row(row), column(column), type(type) {}
 
-Action::Action() noexcept : row(0), column(0), type(Type::INVALID) {}
+Action::Action(Type type) noexcept : row(0), column(0), type(type) {}
 
 bool operator==(Action const & lhs, Action const & rhs) noexcept
 {

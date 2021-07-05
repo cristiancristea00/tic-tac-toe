@@ -4,7 +4,7 @@
 int main()
 {
     auto game = new Game();
-    game->DrawBoard();
+    game->Play();
     delete game;
     return 0;
 }

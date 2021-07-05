@@ -24,7 +24,7 @@ class Action
     uint8_t column;
     Type type;
 
-    Action() noexcept;
+    explicit Action(Type) noexcept;
     Action(uint8_t, uint8_t, Type) noexcept;
     friend bool operator==(Action const & lhs, Action const & rhs) noexcept;
 };

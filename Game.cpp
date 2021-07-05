@@ -21,6 +21,17 @@ struct hash<Action>
 };
 }
 
+Game::Game() noexcept
+{
+    for (int i = 0; i < BOARD_SIZE; ++i)
+    {
+        for (int j = 0; j < BOARD_SIZE; ++j)
+        {
+            game_board[i][j] = BoardState::EMPTY;
+        }
+    }
+}
+
 Game::BoardState Game::BoardStateFromPlayer(Game::Player player) noexcept
 {
     if (player == PLAYER_X)
@@ -41,15 +52,12 @@ char Game::CharFromBoardState(BoardState board_state) noexcept
 {
     switch (board_state)
     {
-
-        case BoardState::EMPTY:
-            return ' ';
         case BoardState::X:
             return 'X';
         case BoardState::O:
             return '0';
-        case BoardState::UNKNOWN:
-            return 'U';
+        default:
+            return ' ';
     }
 }
 
@@ -151,8 +159,12 @@ Game::Value Game::Utility(Board const & current_board) noexcept
     }
 }
 
-Game::Board Game::Get_Result_Board(Board const & current_board, Action const & action) noexcept
+Game::Board Game::Get_Result_Board(Board const & current_board, Action const & action)
 {
+    if (current_board[action.row][action.column] != BoardState::EMPTY || action.type == Action::Type::INVALID)
+    {
+        throw std::invalid_argument("Invalid action!");
+    }
     auto action_board = current_board;
     action_board[action.row][action.column] = BoardStateFromPlayer(Get_Current_Player(current_board));
     return action_board;
@@ -192,7 +204,7 @@ Action Game::Minimax(Board const & current_board) const noexcept
 {
     if (Is_Terminal(current_board))
     {
-        return Action();
+        return Action(Action::Type::INVALID);
     }
 
     auto actions = Get_Actions(current_board);
@@ -247,24 +259,105 @@ Action Game::Minimax(Board const & current_board) const noexcept
     std::sample(result.begin(), result.end(), std::back_inserter(result), 1, std::mt19937 {std::random_device {}()});
     return result.back().first;
 }
+
 void Game::DrawBoard() const noexcept
 {
+    using fmt::print;
     static constexpr std::string_view horizontal_separator = "-------------\n";
-    static constexpr std::string_view grid_format = "| %c | %c | %c |\n";
+    static constexpr std::string_view grid_format = "| {} | {} | {} |\n";
 
-    printf(horizontal_separator.data());
-    printf(grid_format.data(), CharFromBoardState(game_board[0][0]),
-           CharFromBoardState(game_board[0][1]),
-           CharFromBoardState(game_board[0][2]));
-    printf(horizontal_separator.data());
-    printf(grid_format.data(), CharFromBoardState(game_board[1][0]),
-           CharFromBoardState(game_board[1][1]),
-           CharFromBoardState(game_board[1][2]));
-    printf(horizontal_separator.data());
-    printf(grid_format.data(), CharFromBoardState(game_board[2][0]),
-           CharFromBoardState(game_board[2][1]),
-           CharFromBoardState(game_board[2][2]));
-    printf(horizontal_separator.data());
+    print(horizontal_separator);
+    print(grid_format, CharFromBoardState(game_board[0][0]),
+          CharFromBoardState(game_board[0][1]),
+          CharFromBoardState(game_board[0][2]));
+    print(horizontal_separator);
+    print(grid_format, CharFromBoardState(game_board[1][0]),
+          CharFromBoardState(game_board[1][1]),
+          CharFromBoardState(game_board[1][2]));
+    print(horizontal_separator);
+    print(grid_format, CharFromBoardState(game_board[2][0]),
+          CharFromBoardState(game_board[2][1]),
+          CharFromBoardState(game_board[2][2]));
+    print(horizontal_separator);
 }
 
+void Game::Play()
+{
+    using fmt::print;
 
+    while (true)
+    {
+        if (user == PLAYER_UNKNOWN)
+        {
+            Player choice;
+            print("Choose between X or 0: ");
+            scanf("%c", &choice);
+            if (toupper(choice) == 'X')
+            {
+                user = PLAYER_X;
+            }
+            else if (toupper(choice) == '0')
+            {
+                user = PLAYER_0;
+            }
+            else
+            {
+                throw std::invalid_argument("Invalid player");
+            }
+        }
+        else
+        {
+            static bool game_over;
+            static Player current_player;
+
+            DrawBoard();
+
+            game_over = Is_Terminal(game_board);
+            current_player = Get_Current_Player(game_board);
+
+            if (game_over)
+            {
+                Player winner = Get_Winner(game_board);
+                if (winner == PLAYER_UNKNOWN)
+                {
+                    print("Game Over: TIE\n");
+                }
+                else
+                {
+                    print("Game Over: {:c} wins\n", winner);
+                }
+                break;
+            }
+            else if (user == current_player)
+            {
+                print("Play as {:c}\n", user);
+            }
+            else
+            {
+                print("Computer thinking...\n");
+            }
+
+            if (user != current_player)
+            {
+                if (ai_turn)
+                {
+                    Action move = Minimax(game_board);
+                    game_board = Get_Result_Board(game_board, move);
+                    ai_turn = false;
+                }
+                else
+                {
+                    ai_turn = true;
+                }
+            }
+            else if (user == current_player)
+            {
+                Action move(Action::Type::VALID);
+                print("Choose coordinates: ");
+                scanf("%u %u", &move.row, &move.column);
+                game_board = Get_Result_Board(game_board, move);
+            }
+        }
+        system("clear");
+    }
+}
