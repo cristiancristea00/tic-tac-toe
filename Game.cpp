@@ -52,12 +52,12 @@ char Game::CharFromBoardState(BoardState board_state) noexcept
 {
     switch (board_state)
     {
-        case BoardState::X:
-            return 'X';
-        case BoardState::O:
-            return '0';
-        default:
-            return ' ';
+    case BoardState::X:
+        return 'X';
+    case BoardState::O:
+        return '0';
+    default:
+        return ' ';
     }
 }
 
@@ -80,13 +80,13 @@ bool Game::Is_Winner(Player current_player, Board const & current_board) noexcep
 {
     BoardState symbol = BoardStateFromPlayer(current_player);
     return (current_board[0][0] == symbol && current_board[0][1] == symbol && current_board[0][2] == symbol) ||
-            (current_board[1][0] == symbol && current_board[1][1] == symbol && current_board[1][2] == symbol) ||
-            (current_board[2][0] == symbol && current_board[2][1] == symbol && current_board[2][2] == symbol) ||
-            (current_board[0][0] == symbol && current_board[1][0] == symbol && current_board[2][0] == symbol) ||
-            (current_board[0][1] == symbol && current_board[1][1] == symbol && current_board[2][1] == symbol) ||
-            (current_board[0][2] == symbol && current_board[1][2] == symbol && current_board[2][2] == symbol) ||
-            (current_board[0][0] == symbol && current_board[1][1] == symbol && current_board[2][2] == symbol) ||
-            (current_board[0][2] == symbol && current_board[1][1] == symbol && current_board[2][0] == symbol);
+           (current_board[1][0] == symbol && current_board[1][1] == symbol && current_board[1][2] == symbol) ||
+           (current_board[2][0] == symbol && current_board[2][1] == symbol && current_board[2][2] == symbol) ||
+           (current_board[0][0] == symbol && current_board[1][0] == symbol && current_board[2][0] == symbol) ||
+           (current_board[0][1] == symbol && current_board[1][1] == symbol && current_board[2][1] == symbol) ||
+           (current_board[0][2] == symbol && current_board[1][2] == symbol && current_board[2][2] == symbol) ||
+           (current_board[0][0] == symbol && current_board[1][1] == symbol && current_board[2][2] == symbol) ||
+           (current_board[0][2] == symbol && current_board[1][1] == symbol && current_board[2][0] == symbol);
 }
 
 Game::Player Game::Get_Current_Player(Board const & current_board) noexcept
