@@ -122,6 +122,17 @@ std::vector<Action> Game::Get_Actions(Board const & current_board) noexcept
     return actions;
 }
 
+Game::Board Game::Get_Result_Board(Board const & current_board, Action const & action)
+{
+    if (current_board[action.row][action.column] != BoardState::EMPTY || action.type == Action::Type::INVALID)
+    {
+        throw std::invalid_argument("Invalid action!");
+    }
+    auto action_board = current_board;
+    action_board[action.row][action.column] = BoardStateFromPlayer(Get_Current_Player(current_board));
+    return action_board;
+}
+
 Game::Player Game::Get_Winner(Board const & current_board) noexcept
 {
     if (Is_Winner(PLAYER_X, current_board))
@@ -157,17 +168,6 @@ Game::Value Game::Utility(Board const & current_board) noexcept
     {
         return 0;
     }
-}
-
-Game::Board Game::Get_Result_Board(Board const & current_board, Action const & action)
-{
-    if (current_board[action.row][action.column] != BoardState::EMPTY || action.type == Action::Type::INVALID)
-    {
-        throw std::invalid_argument("Invalid action!");
-    }
-    auto action_board = current_board;
-    action_board[action.row][action.column] = BoardStateFromPlayer(Get_Current_Player(current_board));
-    return action_board;
 }
 
 Game::Value Game::Get_Min_Value(Board const & current_board) const noexcept
@@ -256,7 +256,14 @@ Action Game::Minimax(Board const & current_board) const noexcept
         }
     }
     std::vector<std::pair<Action, Value>> result(possible_moves.begin(), possible_moves.end());
-    std::sample(result.begin(), result.end(), std::back_inserter(result), 1, std::mt19937 {std::random_device {}()});
+    for (auto const &[ACTION, VALUE] : result)
+    {
+        if (Is_Winner(Get_Current_Player(current_board), current_board))
+        {
+            return ACTION;
+        }
+    }
+    std::sample(result.begin(), result.end(), std::back_inserter(result), 1, std::mt19937_64 {std::random_device {}()});
     return result.back().first;
 }
 
