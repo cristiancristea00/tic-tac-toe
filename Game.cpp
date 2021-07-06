@@ -258,7 +258,7 @@ Action Game::Minimax(Board const & current_board) const noexcept
     std::vector<std::pair<Action, Value>> result(possible_moves.begin(), possible_moves.end());
     for (auto const &[ACTION, VALUE] : result)
     {
-        if (Is_Winner(Get_Current_Player(current_board), current_board))
+        if (Is_Winner(Get_Current_Player(current_board), Get_Result_Board(current_board, ACTION)))
         {
             return ACTION;
         }
