@@ -23,11 +23,11 @@ struct hash<Action>
 
 Game::Game() noexcept
 {
-    for (int i = 0; i < BOARD_SIZE; ++i)
+    for (int row = 0; row < BOARD_SIZE; ++row)
     {
-        for (int j = 0; j < BOARD_SIZE; ++j)
+        for (int column = 0; column < BOARD_SIZE; ++column)
         {
-            game_board[i][j] = BoardState::EMPTY;
+            game_board[row][column] = BoardState::EMPTY;
         }
     }
 }
@@ -63,11 +63,11 @@ inline char Game::CharFromBoardState(BoardState board_state) noexcept
 
 inline bool Game::Is_Board_Full(Board const & current_board) noexcept
 {
-    for (int i = 0; i < BOARD_SIZE; ++i)
+    for (int row = 0; row < BOARD_SIZE; ++row)
     {
-        for (int j = 0; j < BOARD_SIZE; ++j)
+        for (int column = 0; column < BOARD_SIZE; ++column)
         {
-            if (current_board[i][j] == BoardState::EMPTY)
+            if (current_board[row][column] == BoardState::EMPTY)
             {
                 return false;
             }
@@ -92,11 +92,11 @@ bool Game::Is_Winner(Player current_player, Board const & current_board) noexcep
 Game::Player Game::Get_Current_Player(Board const & current_board) noexcept
 {
     uint8_t moves = 0;
-    for (int i = 0; i < BOARD_SIZE; ++i)
+    for (int row = 0; row < BOARD_SIZE; ++row)
     {
-        for (int j = 0; j < BOARD_SIZE; ++j)
+        for (int column = 0; column < BOARD_SIZE; ++column)
         {
-            if (current_board[i][j] != BoardState::EMPTY)
+            if (current_board[row][column] != BoardState::EMPTY)
             {
                 ++moves;
             }
@@ -109,13 +109,13 @@ inline std::vector<Action> Game::Get_Actions(Board const & current_board) noexce
 {
     std::vector<Action> actions;
     actions.reserve(BOARD_SIZE * BOARD_SIZE);
-    for (int i = 0; i < BOARD_SIZE; ++i)
+    for (int row = 0; row < BOARD_SIZE; ++row)
     {
-        for (int j = 0; j < BOARD_SIZE; ++j)
+        for (int column = 0; column < BOARD_SIZE; ++column)
         {
-            if (current_board[i][j] == BoardState::EMPTY)
+            if (current_board[row][column] == BoardState::EMPTY)
             {
-                actions.emplace_back(i, j, Action::Type::VALID);
+                actions.emplace_back(row, column, Action::Type::VALID);
             }
         }
     }
