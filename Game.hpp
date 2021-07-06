@@ -44,19 +44,19 @@ class Game
     bool ai_turn = false;
 
  private:
-    static BoardState BoardStateFromPlayer(Player) noexcept;
-    static char CharFromBoardState(BoardState) noexcept;
-    static bool Is_Board_Full(Board const &) noexcept;
+    inline static BoardState BoardStateFromPlayer(Player) noexcept;
+    inline static char CharFromBoardState(BoardState) noexcept;
+    inline static bool Is_Board_Full(Board const &) noexcept;
     static bool Is_Winner(Player, Board const &) noexcept;
     static Player Get_Current_Player(Board const &) noexcept;
-    static std::vector<Action> Get_Actions(Board const &) noexcept;
-    static Player Get_Winner(Board const &) noexcept;
-    static bool Is_Terminal(Board const &) noexcept;
-    static Value Utility(Board const &) noexcept;
-    static Board Get_Result_Board(Board const &, Action const &) noexcept;
+    inline static std::vector<Action> Get_Actions(Board const &) noexcept;
+    inline static Player Get_Winner(Board const &) noexcept;
+    inline static bool Is_Terminal(Board const &) noexcept;
+    inline static Value Utility(Board const &) noexcept;
+    inline static Board Get_Result_Board(Board const &, Action const &) noexcept;
     Value Get_Min_Value(Board const &) const noexcept;
     Value Get_Max_Value(Board const &) const noexcept;
-    Action Minimax(Board const &) const noexcept;
+    inline Action Minimax(Board const &) const noexcept;
     void DrawBoard() const noexcept;
 
  public:

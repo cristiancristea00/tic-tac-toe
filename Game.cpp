@@ -32,7 +32,7 @@ Game::Game() noexcept
     }
 }
 
-Game::BoardState Game::BoardStateFromPlayer(Game::Player player) noexcept
+inline Game::BoardState Game::BoardStateFromPlayer(Game::Player player) noexcept
 {
     if (player == PLAYER_X)
     {
@@ -48,7 +48,7 @@ Game::BoardState Game::BoardStateFromPlayer(Game::Player player) noexcept
     }
 }
 
-char Game::CharFromBoardState(BoardState board_state) noexcept
+inline char Game::CharFromBoardState(BoardState board_state) noexcept
 {
     switch (board_state)
     {
@@ -61,7 +61,7 @@ char Game::CharFromBoardState(BoardState board_state) noexcept
     }
 }
 
-bool Game::Is_Board_Full(Board const & current_board) noexcept
+inline bool Game::Is_Board_Full(Board const & current_board) noexcept
 {
     for (int i = 0; i < BOARD_SIZE; ++i)
     {
@@ -105,7 +105,7 @@ Game::Player Game::Get_Current_Player(Board const & current_board) noexcept
     return (moves % 2 == 0) ? PLAYER_X : PLAYER_0;
 }
 
-std::vector<Action> Game::Get_Actions(Board const & current_board) noexcept
+inline std::vector<Action> Game::Get_Actions(Board const & current_board) noexcept
 {
     std::vector<Action> actions;
     actions.reserve(BOARD_SIZE * BOARD_SIZE);
@@ -122,14 +122,14 @@ std::vector<Action> Game::Get_Actions(Board const & current_board) noexcept
     return actions;
 }
 
-Game::Board Game::Get_Result_Board(Board const & current_board, Action const & action) noexcept
+inline Game::Board Game::Get_Result_Board(Board const & current_board, Action const & action) noexcept
 {
     auto action_board = current_board;
     action_board[action.row][action.column] = BoardStateFromPlayer(Get_Current_Player(current_board));
     return action_board;
 }
 
-Game::Player Game::Get_Winner(Board const & current_board) noexcept
+inline Game::Player Game::Get_Winner(Board const & current_board) noexcept
 {
     if (Is_Winner(PLAYER_X, current_board))
     {
@@ -145,12 +145,12 @@ Game::Player Game::Get_Winner(Board const & current_board) noexcept
     }
 }
 
-bool Game::Is_Terminal(Board const & current_board) noexcept
+inline bool Game::Is_Terminal(Board const & current_board) noexcept
 {
     return Is_Board_Full(current_board) || Is_Winner(PLAYER_X, current_board) || Is_Winner(PLAYER_0, current_board);
 }
 
-Game::Value Game::Utility(Board const & current_board) noexcept
+inline Game::Value Game::Utility(Board const & current_board) noexcept
 {
     if (Is_Winner(PLAYER_X, current_board))
     {
@@ -196,7 +196,7 @@ Game::Value Game::Get_Max_Value(Board const & current_board) const noexcept
     return value;
 }
 
-Action Game::Minimax(Board const & current_board) const noexcept
+inline Action Game::Minimax(Board const & current_board) const noexcept
 {
     if (Is_Terminal(current_board))
     {
