@@ -3,8 +3,11 @@
 
 int main()
 {
-    auto game = new Game();
-    game->Play();
-    delete game;
+    while (true)
+    {
+        auto game = new Game();
+        game->Play();
+        delete game;
+    }
     return 0;
 }

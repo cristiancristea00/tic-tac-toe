@@ -122,12 +122,8 @@ std::vector<Action> Game::Get_Actions(Board const & current_board) noexcept
     return actions;
 }
 
-Game::Board Game::Get_Result_Board(Board const & current_board, Action const & action)
+Game::Board Game::Get_Result_Board(Board const & current_board, Action const & action) noexcept
 {
-    if (current_board[action.row][action.column] != BoardState::EMPTY || action.type == Action::Type::INVALID)
-    {
-        throw std::invalid_argument("Invalid action!");
-    }
     auto action_board = current_board;
     action_board[action.row][action.column] = BoardStateFromPlayer(Get_Current_Player(current_board));
     return action_board;
@@ -269,36 +265,34 @@ Action Game::Minimax(Board const & current_board) const noexcept
 
 void Game::DrawBoard() const noexcept
 {
-    using fmt::print;
     static constexpr std::string_view horizontal_separator = "-------------\n";
-    static constexpr std::string_view grid_format = "| {} | {} | {} |\n";
+    static constexpr std::string_view grid_format = "| %c | %c | %c |\n";
 
-    print(horizontal_separator);
-    print(grid_format, CharFromBoardState(game_board[0][0]),
-          CharFromBoardState(game_board[0][1]),
-          CharFromBoardState(game_board[0][2]));
-    print(horizontal_separator);
-    print(grid_format, CharFromBoardState(game_board[1][0]),
-          CharFromBoardState(game_board[1][1]),
-          CharFromBoardState(game_board[1][2]));
-    print(horizontal_separator);
-    print(grid_format, CharFromBoardState(game_board[2][0]),
-          CharFromBoardState(game_board[2][1]),
-          CharFromBoardState(game_board[2][2]));
-    print(horizontal_separator);
+    printf(horizontal_separator.data());
+    printf(grid_format.data(), CharFromBoardState(game_board[0][0]),
+           CharFromBoardState(game_board[0][1]),
+           CharFromBoardState(game_board[0][2]));
+    printf(horizontal_separator.data());
+    printf(grid_format.data(), CharFromBoardState(game_board[1][0]),
+           CharFromBoardState(game_board[1][1]),
+           CharFromBoardState(game_board[1][2]));
+    printf(horizontal_separator.data());
+    printf(grid_format.data(), CharFromBoardState(game_board[2][0]),
+           CharFromBoardState(game_board[2][1]),
+           CharFromBoardState(game_board[2][2]));
+    printf(horizontal_separator.data());
 }
 
-void Game::Play()
+void Game::Play() noexcept
 {
-    using fmt::print;
-
     while (true)
     {
         if (user == PLAYER_UNKNOWN)
         {
-            Player choice;
-            print("Choose between X or 0: ");
-            scanf("%c", &choice);
+            static Player choice;
+
+            printf("Choose between X or 0:\n");
+            scanf(" %c", &choice);
             if (toupper(choice) == 'X')
             {
                 user = PLAYER_X;
@@ -309,7 +303,8 @@ void Game::Play()
             }
             else
             {
-                throw std::invalid_argument("Invalid player");
+                printf("Invalid player\n");
+                break;
             }
         }
         else
@@ -327,21 +322,21 @@ void Game::Play()
                 Player winner = Get_Winner(game_board);
                 if (winner == PLAYER_UNKNOWN)
                 {
-                    print("Game Over: TIE\n");
+                    printf("Game Over: TIE\n");
                 }
                 else
                 {
-                    print("Game Over: {:c} wins\n", winner);
+                    printf("Game Over: %c wins\n", winner);
                 }
                 break;
             }
             else if (user == current_player)
             {
-                print("Play as {:c}\n", user);
+                printf("Play as %c\n", user);
             }
             else
             {
-                print("Computer thinking...\n");
+                printf("Computer thinking...\n");
             }
 
             if (user != current_player)
@@ -360,11 +355,10 @@ void Game::Play()
             else if (user == current_player)
             {
                 Action move(Action::Type::VALID);
-                print("Choose coordinates: ");
-                scanf("%u %u", &move.row, &move.column);
+                printf("Choose coordinates:\n");
+                scanf(" %u %u", &move.row, &move.column);
                 game_board = Get_Result_Board(game_board, move);
             }
         }
-        system("clear");
     }
 }

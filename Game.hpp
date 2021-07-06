@@ -11,8 +11,6 @@
 
 #include "Action.hpp"
 
-#include <fmt/core.h>
-
 #include <array>
 #include <vector>
 #include <random>
@@ -55,7 +53,7 @@ class Game
     static Player Get_Winner(Board const &) noexcept;
     static bool Is_Terminal(Board const &) noexcept;
     static Value Utility(Board const &) noexcept;
-    static Board Get_Result_Board(Board const &, Action const &);
+    static Board Get_Result_Board(Board const &, Action const &) noexcept;
     Value Get_Min_Value(Board const &) const noexcept;
     Value Get_Max_Value(Board const &) const noexcept;
     Action Minimax(Board const &) const noexcept;
@@ -63,6 +61,6 @@ class Game
 
  public:
     Game() noexcept;
-    void Play();
+    void Play() noexcept;
 };
 

@@ -7,7 +7,6 @@
  * @copyright Copyright (C) 2021 Cristian Cristea. All rights reserved.
  ******************************************************************************/
 
-#include <tuple>
 #include "Action.hpp"
 
 Action::Action(uint8_t row, uint8_t column, Type type) noexcept : row(row), column(column), type(type) {}
