@@ -6,6 +6,10 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
+if (NOT DEFINED ENV{PICO_SDK_PATH})
+    SET(PICO_SDK_FETCH_FROM_GIT 1)
+endif ()
+
 include(pico_sdk_import.cmake)
 
 # Initialise the Raspberry Pi Pico SDK
