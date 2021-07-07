@@ -115,11 +115,17 @@ inline std::vector<Action> Game::Get_Actions(Board const & current_board) noexce
         {
             if (current_board[row][column] == BoardState::EMPTY)
             {
-                actions.emplace_back(row, column, Action::Type::VALID);
+                actions.emplace_back(row, column);
             }
         }
     }
     return actions;
+}
+
+inline bool Game::Is_Valid_Action(Board const & current_board, Action const & action) noexcept
+{
+    return action.row >= 0 && action.column >= 0 && action.row < BOARD_SIZE && action.column < BOARD_SIZE
+            && current_board[action.row][action.column] == BoardState::EMPTY;
 }
 
 inline Game::Board Game::Get_Result_Board(Board const & current_board, Action const & action) noexcept
@@ -200,7 +206,7 @@ inline Action Game::Minimax(Board const & current_board) const noexcept
 {
     if (Is_Terminal(current_board))
     {
-        return Action(Action::Type::INVALID);
+        return Action();
     }
 
     auto actions = Get_Actions(current_board);
@@ -268,19 +274,19 @@ void Game::DrawBoard() const noexcept
     static constexpr std::string_view horizontal_separator = "-------------\n";
     static constexpr std::string_view grid_format = "| %c | %c | %c |\n";
 
-    printf(horizontal_separator.data());
+    printf("%s", horizontal_separator.data());
     printf(grid_format.data(), CharFromBoardState(game_board[0][0]),
            CharFromBoardState(game_board[0][1]),
            CharFromBoardState(game_board[0][2]));
-    printf(horizontal_separator.data());
+    printf("%s", horizontal_separator.data());
     printf(grid_format.data(), CharFromBoardState(game_board[1][0]),
            CharFromBoardState(game_board[1][1]),
            CharFromBoardState(game_board[1][2]));
-    printf(horizontal_separator.data());
+    printf("%s", horizontal_separator.data());
     printf(grid_format.data(), CharFromBoardState(game_board[2][0]),
            CharFromBoardState(game_board[2][1]),
            CharFromBoardState(game_board[2][2]));
-    printf(horizontal_separator.data());
+    printf("%s", horizontal_separator.data());
 }
 
 void Game::Play() noexcept
@@ -354,9 +360,18 @@ void Game::Play() noexcept
             }
             else if (user == current_player)
             {
-                Action move(Action::Type::VALID);
-                printf("Choose coordinates:\n");
-                scanf(" %u %u", &move.row, &move.column);
+                static Action move;
+
+                do
+                {
+                    printf("Choose coordinates:\n");
+                    scanf(" %hd %hd", &move.row, &move.column);
+                    if (!Is_Valid_Action(game_board, move))
+                    {
+                        printf("Invalid coordinates!\n");
+                    }
+                }
+                while (!Is_Valid_Action(game_board, move));
                 game_board = Get_Result_Board(game_board, move);
             }
         }

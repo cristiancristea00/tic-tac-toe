@@ -53,6 +53,7 @@ class Game
     inline static Player Get_Winner(Board const &) noexcept;
     inline static bool Is_Terminal(Board const &) noexcept;
     inline static Value Utility(Board const &) noexcept;
+    inline static bool Is_Valid_Action(Board const &, Action const &) noexcept;
     inline static Board Get_Result_Board(Board const &, Action const &) noexcept;
     Value Get_Min_Value(Board const &) const noexcept;
     Value Get_Max_Value(Board const &) const noexcept;

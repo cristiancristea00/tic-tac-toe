@@ -9,11 +9,9 @@
 
 #include "Action.hpp"
 
-Action::Action(uint8_t row, uint8_t column, Type type) noexcept : row(row), column(column), type(type) {}
-
-Action::Action(Type type) noexcept : row(0), column(0), type(type) {}
+Action::Action(uint8_t row, uint8_t column) noexcept : row(row), column(column) {}
 
 bool operator==(Action const & lhs, Action const & rhs) noexcept
 {
-    return std::tie(lhs.row, lhs.column, lhs.type) == std::tie(rhs.row, rhs.column, rhs.type);
+    return std::tie(lhs.row, lhs.column) == std::tie(rhs.row, rhs.column);
 }
