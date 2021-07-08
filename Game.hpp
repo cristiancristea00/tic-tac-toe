@@ -44,20 +44,20 @@ class Game
     bool ai_turn = false;
 
  private:
-    inline static BoardState BoardStateFromPlayer(Player) noexcept;
-    inline static char CharFromBoardState(BoardState) noexcept;
-    inline static bool Is_Board_Full(Board const &) noexcept;
-    static bool Is_Winner(Player, Board const &) noexcept;
-    static Player Get_Current_Player(Board const &) noexcept;
-    inline static std::vector<Action> Get_Actions(Board const &) noexcept;
-    inline static Player Get_Winner(Board const &) noexcept;
-    inline static bool Is_Terminal(Board const &) noexcept;
-    inline static Value Utility(Board const &) noexcept;
-    inline static bool Is_Valid_Action(Board const &, Action const &) noexcept;
-    inline static Board Get_Result_Board(Board const &, Action const &) noexcept;
-    Value Get_Min_Value(Board const &) const noexcept;
-    Value Get_Max_Value(Board const &) const noexcept;
-    inline Action Minimax(Board const &) const noexcept;
+    inline static BoardState BoardStateFromPlayer(Player player) noexcept;
+    inline static char CharFromBoardState(BoardState board_state) noexcept;
+    inline static bool Is_Board_Full(Board const & current_board) noexcept;
+    static bool Is_Winner(Player current_player, Board const & current_board) noexcept;
+    static Player Get_Current_Player(Board const & current_board) noexcept;
+    inline static std::vector<Action> Get_Actions(Board const & current_board) noexcept;
+    inline static Player Get_Winner(Board const & current_board) noexcept;
+    inline static bool Is_Terminal(Board const & current_board) noexcept;
+    inline static Value Utility(Board const & current_board) noexcept;
+    inline static bool Is_Valid_Action(Board const & current_board, Action const & action) noexcept;
+    inline static Board Get_Result_Board(Board const & current_board, Action const & action) noexcept;
+    Value Get_Min_Value(Board const & current_board) const noexcept;
+    Value Get_Max_Value(Board const & current_board) const noexcept;
+    inline Action Minimax(Board const & current_board) const noexcept;
     void DrawBoard() const noexcept;
 
  public:
