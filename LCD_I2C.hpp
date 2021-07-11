@@ -80,12 +80,12 @@ class LCD_I2C
     byte display_control {};
     byte display_mode {};
 
-    i2c_inst * I2C_instance {};
+    i2c_inst * I2C_instance = nullptr;
 
     inline void I2C_Write_Byte(byte val) const noexcept;
     void Pulse_Enable(byte val) const noexcept;
     inline void Send_Nibble(byte val) const noexcept;
-    void Send_Byte(byte val, byte mode) const noexcept;
+    inline void Send_Byte(byte val, byte mode) const noexcept;
     inline void Send_Command(byte val) const noexcept;
     inline void Send_Char(byte val) const noexcept;
     inline void Send_Write(byte val) const noexcept;
@@ -111,6 +111,7 @@ class LCD_I2C
     void ScrollDisplayLeft() const noexcept;
     void ScrollDisplayRight() const noexcept;
     void SetCursor(byte row, byte column) const noexcept;
+    void PrintChar(byte character) const noexcept;
     void Print(std::string_view str) const noexcept;
     void PrintCustomChar(byte location) const noexcept;
     void CreateChar(byte location, byte const * char_map) const noexcept;

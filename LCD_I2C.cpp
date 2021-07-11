@@ -45,7 +45,7 @@ inline void LCD_I2C::Send_Nibble(byte val) const noexcept
     Pulse_Enable(val);
 }
 
-void LCD_I2C::Send_Byte(byte val, byte mode) const noexcept
+inline void LCD_I2C::Send_Byte(byte val, byte mode) const noexcept
 {
     byte high = val & 0xF0;
     byte low = (val << 4) & 0xF0;
@@ -185,11 +185,16 @@ void LCD_I2C::SetCursor(byte row, byte column) const noexcept
     Send_Command(SET_DDRAM_ADDR | (row_offsets[row] + column));
 }
 
+void LCD_I2C::PrintChar(byte character) const noexcept
+{
+    Send_Char(character);
+}
+
 void LCD_I2C::Print(std::string_view str) const noexcept
 {
     for (char const character : str)
     {
-        Send_Char(character);
+        PrintChar(character);
     }
 }
 

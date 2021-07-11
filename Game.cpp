@@ -21,14 +21,21 @@ struct hash<Action>
 };
 }
 
-Game::Game() noexcept
+Game::Game(LCD_I2C * lcd) noexcept : lcd(lcd)
 {
-    for (int row = 0; row < BOARD_SIZE; ++row)
+    static constexpr int NO_CUSTOM_SYMBOLS = 6;
+
+    static constexpr LCD_I2C::byte custom_symbols[NO_CUSTOM_SYMBOLS][8] =
+            {{0x07, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x07}, /* LEFT */
+             {0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x1F}, /* CENTER */
+             {0x1C, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x1C}, /* RIGHT */
+             {0x00, 0x11, 0x0A, 0x04, 0x04, 0x0A, 0x11, 0x00}, /* X */
+             {0x00, 0x0E, 0x11, 0x11, 0x11, 0x11, 0x0E, 0x00}, /* 0 */
+             {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}  /* ' ' */};
+
+    for (int location = 0; location < NO_CUSTOM_SYMBOLS; ++location)
     {
-        for (int column = 0; column < BOARD_SIZE; ++column)
-        {
-            game_board[row][column] = BoardState::EMPTY;
-        }
+        lcd->CreateChar(location, custom_symbols[location]);
     }
 }
 
@@ -58,6 +65,30 @@ inline char Game::CharFromBoardState(BoardState board_state) noexcept
             return '0';
         default:
             return ' ';
+    }
+}
+
+LCD_I2C::byte Game::LCDCharLocationFromBoardState(BoardState board_state) noexcept
+{
+    switch (board_state)
+    {
+        case BoardState::X:
+            return 3;
+        case BoardState::O:
+            return 4;
+        default:
+            return 5;
+    }
+}
+
+void Game::Reset_Board() noexcept
+{
+    for (int row = 0; row < BOARD_SIZE; ++row)
+    {
+        for (int column = 0; column < BOARD_SIZE; ++column)
+        {
+            game_board[row][column] = BoardState::EMPTY;
+        }
     }
 }
 
@@ -275,21 +306,25 @@ void Game::DrawBoard() const noexcept
     static constexpr std::string_view grid_format = "| %c | %c | %c |\n";
 
     printf("%s", horizontal_separator.data());
-    printf(grid_format.data(), CharFromBoardState(game_board[0][0]),
-           CharFromBoardState(game_board[0][1]),
-           CharFromBoardState(game_board[0][2]));
-    printf("%s", horizontal_separator.data());
-    printf(grid_format.data(), CharFromBoardState(game_board[1][0]),
-           CharFromBoardState(game_board[1][1]),
-           CharFromBoardState(game_board[1][2]));
-    printf("%s", horizontal_separator.data());
-    printf(grid_format.data(), CharFromBoardState(game_board[2][0]),
-           CharFromBoardState(game_board[2][1]),
-           CharFromBoardState(game_board[2][2]));
-    printf("%s", horizontal_separator.data());
+    for (int row = 0; row < BOARD_SIZE; ++row)
+    {
+        printf(grid_format.data(), CharFromBoardState(game_board[row][0]),
+               CharFromBoardState(game_board[row][1]),
+               CharFromBoardState(game_board[row][2]));
+        printf("%s", horizontal_separator.data());
+
+        lcd->SetCursor(row, 0);
+        lcd->PrintCustomChar(0);
+        lcd->PrintCustomChar(LCDCharLocationFromBoardState(game_board[row][0]));
+        lcd->PrintCustomChar(1);
+        lcd->PrintCustomChar(LCDCharLocationFromBoardState(game_board[row][1]));
+        lcd->PrintCustomChar(1);
+        lcd->PrintCustomChar(LCDCharLocationFromBoardState(game_board[row][2]));
+        lcd->PrintCustomChar(2);
+    }
 }
 
-void Game::Play() noexcept
+void Game::Internal_Play() noexcept
 {
     while (true)
     {
@@ -375,5 +410,14 @@ void Game::Play() noexcept
                 game_board = Get_Result_Board(game_board, move);
             }
         }
+    }
+}
+
+[[noreturn]] void Game::Play() noexcept
+{
+    while (true)
+    {
+        Reset_Board();
+        Internal_Play();
     }
 }

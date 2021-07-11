@@ -5,19 +5,16 @@
 
 int main()
 {
-    constexpr uint SDA_pin = PICO_DEFAULT_I2C_SDA_PIN;
-    constexpr uint SCL_pin = PICO_DEFAULT_I2C_SCL_PIN;
+    constexpr auto SDA = PICO_DEFAULT_I2C_SDA_PIN;
+    constexpr auto SCL = PICO_DEFAULT_I2C_SCL_PIN;
+    constexpr auto I2C = PICO_DEFAULT_I2C_INSTANCE;
 
-    bi_decl(bi_2pins_with_func(SDA_pin, SCL_pin, GPIO_FUNC_I2C));
+    bi_decl(bi_2pins_with_func(SDA, SCL, GPIO_FUNC_I2C));
     stdio_uart_init();
 
-    auto lcd = new LCD_I2C(0x27, 20, 4, SDA_pin, SCL_pin, i2c_default);
-    // lcd->BacklightOn();
-    lcd->SetCursor(0, 0);
-    lcd->Print("Hello");
-    lcd->SetCursor(1, 0);
-    lcd->Print("Claudia");
-    lcd->SetCursor(2, 0);
-    lcd->Print("Cristi are mere.");
-    while (true);
+    auto lcd = new LCD_I2C(0x27, 20, 4, SDA, SCL, I2C);
+    auto game = new Game(lcd);
+
+    lcd->BacklightOn();
+    game->Play();
 }
