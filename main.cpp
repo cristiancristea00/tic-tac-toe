@@ -16,6 +16,5 @@ int main()
     auto lcd = new LCD_I2C(0x27, 20, 4, SDA, SCL, I2C);
     auto game = new Game(lcd);
 
-    lcd->BacklightOn();
     game->Play();
 }

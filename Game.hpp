@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <hardware/regs/rosc.h>
+
 #include "Action.hpp"
 #include "LCD_I2C.hpp"
 
@@ -50,6 +52,7 @@ class Game
     LCD_I2C * lcd = nullptr;
 
  private:
+    inline static uint32_t Get_Random_Seed() noexcept;
     inline static BoardState BoardStateFromPlayer(Player player) noexcept;
     inline static char CharFromBoardState(BoardState board_state) noexcept;
     inline static LCD_I2C::byte LCDCharLocationFromBoardState(BoardState board_state) noexcept;
