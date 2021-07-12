@@ -39,6 +39,12 @@ Game::Game(LCD_I2C * lcd) noexcept : lcd(lcd)
     }
 }
 
+/**
+ * Random function found on Google that does the job. I have no idea what it
+ * does.
+ *
+ * @return Random seed generated from the current board parameters.
+ */
 inline uint32_t Game::Get_Random_Seed() noexcept
 {
     uint32_t random = 0x811c9dc5;
