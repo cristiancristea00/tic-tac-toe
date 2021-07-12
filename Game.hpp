@@ -40,6 +40,9 @@ class Game
     static constexpr Player PLAYER_0 = '0';
     static constexpr Player PLAYER_UNKNOWN = 'U';
 
+    static constexpr Value VALUE_MAX = std::numeric_limits<Value>::max();
+    static constexpr Value VALUE_MIN = std::numeric_limits<Value>::min();
+
     Board game_board {};
     Player user = PLAYER_UNKNOWN;
     bool ai_turn = false;
@@ -60,8 +63,8 @@ class Game
     inline static Value Utility(Board const & current_board) noexcept;
     inline static bool Is_Valid_Action(Board const & current_board, Action const & action) noexcept;
     inline static Board Get_Result_Board(Board const & current_board, Action const & action) noexcept;
-    [[nodiscard]] Value Get_Min_Value(Board const & current_board) const noexcept;
-    [[nodiscard]] Value Get_Max_Value(Board const & current_board) const noexcept;
+    [[nodiscard]] Game::Value Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept;
+    [[nodiscard]] Game::Value Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept;
     [[nodiscard]] inline Action Minimax(Board const & current_board) const noexcept;
     void DrawBoard() const noexcept;
     void Internal_Play() noexcept;
