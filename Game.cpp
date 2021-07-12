@@ -39,6 +39,30 @@ Game::Game(LCD_I2C * lcd) noexcept : lcd(lcd)
     }
 }
 
+/**
+ * Random function found on Google that does the job. I have no idea what it
+ * does.
+ *
+ * @return Random seed generated from the current board parameters.
+ */
+inline uint32_t Game::Get_Random_Seed() noexcept
+{
+    uint32_t random = 0x811c9dc5;
+    uint8_t next_byte = 0;
+    volatile uint32_t * rnd_reg = reinterpret_cast<unsigned long *>(ROSC_BASE + ROSC_RANDOMBIT_OFFSET);
+
+    for (int i = 0; i < 16; i++)
+    {
+        for (int k = 0; k < 8; k++)
+        {
+            next_byte = (next_byte << 1) | (*rnd_reg & 1);
+        }
+        random ^= next_byte;
+        random *= 0x01000193;
+    }
+    return random;
+}
+
 inline Game::BoardState Game::BoardStateFromPlayer(Game::Player player) noexcept
 {
     if (player == PLAYER_X)
@@ -249,6 +273,8 @@ Game::Value Game::Get_Max_Value(Board const & current_board, Value alpha, Value 
 
 inline Action Game::Minimax(Board const & current_board) const noexcept
 {
+    static auto RNG = std::mt19937 {Get_Random_Seed()};
+
     if (Is_Terminal(current_board))
     {
         return Action();
@@ -312,7 +338,7 @@ inline Action Game::Minimax(Board const & current_board) const noexcept
             return ACTION;
         }
     }
-    std::sample(result.begin(), result.end(), std::back_inserter(result), 1, std::mt19937 {std::random_device{}()});
+    std::sample(result.begin(), result.end(), std::back_inserter(result), 1, RNG);
     return result.back().first;
 }
 
