@@ -10,6 +10,7 @@ int main()
     constexpr auto I2C = PICO_DEFAULT_I2C_INSTANCE;
 
     bi_decl(bi_2pins_with_func(SDA, SCL, GPIO_FUNC_I2C));
+
     stdio_uart_init();
 
     auto lcd = new LCD_I2C(0x27, 20, 4, SDA, SCL, I2C);

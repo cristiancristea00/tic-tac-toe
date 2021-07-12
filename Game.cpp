@@ -203,32 +203,46 @@ inline Game::Value Game::Utility(Board const & current_board) noexcept
     }
 }
 
-Game::Value Game::Get_Min_Value(Board const & current_board) const noexcept
+Game::Value Game::Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept
 {
     if (Is_Terminal(current_board))
     {
         return Utility(current_board);
     }
-    Value value = std::numeric_limits<Value>::max();
+
+    Value value = VALUE_MAX;
+
     auto current_actions = Get_Actions(current_board);
     for (Action const & action : current_actions)
     {
-        value = std::min(value, Get_Max_Value(Get_Result_Board(current_board, action)));
+        value = std::min(value, Get_Max_Value(Get_Result_Board(current_board, action), alpha, beta));
+        beta = std::min(beta, value);
+        if (value <= alpha)
+        {
+            return value;
+        }
     }
     return value;
 }
 
-Game::Value Game::Get_Max_Value(Board const & current_board) const noexcept
+Game::Value Game::Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept
 {
     if (Is_Terminal(current_board))
     {
         return Utility(current_board);
     }
-    Value value = std::numeric_limits<Value>::min();
+
+    Value value = VALUE_MIN;
+
     auto current_actions = Get_Actions(current_board);
     for (Action const & action : current_actions)
     {
-        value = std::max(value, Get_Min_Value(Get_Result_Board(current_board, action)));
+        value = std::max(value, Get_Min_Value(Get_Result_Board(current_board, action), alpha, beta));
+        alpha = std::max(alpha, value);
+        if (value >= beta)
+        {
+            return value;
+        }
     }
     return value;
 }
@@ -244,10 +258,11 @@ inline Action Game::Minimax(Board const & current_board) const noexcept
     std::unordered_map<Action, Value> possible_moves;
     if (Get_Current_Player(current_board) == PLAYER_X)
     {
-        Value max_value = std::numeric_limits<Value>::min();
+        Value max_value = VALUE_MIN;
         for (Action const & action : actions)
         {
-            possible_moves.emplace(action, Get_Min_Value(Get_Result_Board(current_board, action)));
+            possible_moves.emplace(action, Get_Min_Value(Get_Result_Board(current_board, action),
+                                                         VALUE_MIN, VALUE_MAX));
             if (possible_moves[action] > max_value)
             {
                 max_value = possible_moves[action];
@@ -267,10 +282,11 @@ inline Action Game::Minimax(Board const & current_board) const noexcept
     }
     else
     {
-        Value min_value = std::numeric_limits<Value>::max();
+        Value min_value = VALUE_MAX;
         for (Action const & action : actions)
         {
-            possible_moves.emplace(action, Get_Max_Value(Get_Result_Board(current_board, action)));
+            possible_moves.emplace(action, Get_Max_Value(Get_Result_Board(current_board, action),
+                                                         VALUE_MIN, VALUE_MAX));
             if (possible_moves[action] < min_value)
             {
                 min_value = possible_moves[action];
@@ -296,7 +312,7 @@ inline Action Game::Minimax(Board const & current_board) const noexcept
             return ACTION;
         }
     }
-    std::sample(result.begin(), result.end(), std::back_inserter(result), 1, std::mt19937_64 {std::random_device {}()});
+    std::sample(result.begin(), result.end(), std::back_inserter(result), 1, std::mt19937 {std::random_device{}()});
     return result.back().first;
 }
 
