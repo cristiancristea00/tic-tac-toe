@@ -47,8 +47,11 @@ inline void LCD_I2C::Send_Nibble(byte val) const noexcept
 
 inline void LCD_I2C::Send_Byte(byte val, byte mode) const noexcept
 {
-    byte high = val & 0xF0;
-    byte low = (val << 4) & 0xF0;
+    static byte high;
+    static byte low;
+
+    high = val & 0xF0;
+    low = (val << 4) & 0xF0;
 
     Send_Nibble(high | mode);
     Send_Nibble(low | mode);
@@ -192,9 +195,9 @@ void LCD_I2C::PrintChar(byte character) const noexcept
 
 void LCD_I2C::PrintString(std::string_view str) const noexcept
 {
-    for (char const character : str)
+    for (char const CHARACTER : str)
     {
-        PrintChar(character);
+        PrintChar(CHARACTER);
     }
 }
 
