@@ -92,8 +92,8 @@ class LCD_I2C
     inline void Init() noexcept;
 
  public:
-    LCD_I2C(byte address, byte columns, byte rows, uint SDA_pin = PICO_DEFAULT_I2C_SDA_PIN,
-            uint SCL_pin = PICO_DEFAULT_I2C_SCL_PIN, i2c_inst * I2C_instance = PICO_DEFAULT_I2C_INSTANCE) noexcept;
+    LCD_I2C(byte address, byte columns, byte rows, i2c_inst * I2C_instance = PICO_DEFAULT_I2C_INSTANCE,
+            uint SDA_pin = PICO_DEFAULT_I2C_SDA_PIN, uint SCL_pin = PICO_DEFAULT_I2C_SCL_PIN) noexcept;
     void DisplayOn() noexcept;
     void DisplayOff() noexcept;
     void CursorOn() noexcept;
@@ -112,7 +112,7 @@ class LCD_I2C
     void ScrollDisplayRight() const noexcept;
     void SetCursor(byte row, byte column) const noexcept;
     void PrintChar(byte character) const noexcept;
-    void Print(std::string_view str) const noexcept;
+    void PrintString(std::string_view str) const noexcept;
     void PrintCustomChar(byte location) const noexcept;
     void CreateChar(byte location, byte const * char_map) const noexcept;
 };

@@ -13,7 +13,7 @@ int main()
 
     stdio_uart_init();
 
-    auto lcd = new LCD_I2C(0x27, 20, 4, SDA, SCL, I2C);
+    auto lcd = new LCD_I2C(0x27, 20, 4, I2C, SDA, SCL);
     auto game = new Game(lcd);
 
     game->Play();

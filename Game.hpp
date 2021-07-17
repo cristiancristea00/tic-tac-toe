@@ -70,7 +70,8 @@ class Game
     [[nodiscard]] Game::Value Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept;
     [[nodiscard]] Game::Value Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept;
     [[nodiscard]] inline Action Minimax(Board const & current_board) const noexcept;
-    void DrawBoard() const noexcept;
+    inline void DrawGame() const noexcept;
+    void DrawBoardState() const noexcept;
     void Internal_Play() noexcept;
 
  public:

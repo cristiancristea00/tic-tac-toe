@@ -23,7 +23,7 @@ struct hash<Action>
 
 Game::Game(LCD_I2C * lcd) noexcept : lcd(lcd)
 {
-    static constexpr int NO_CUSTOM_SYMBOLS = 6;
+    static constexpr int NO_CUSTOM_SYMBOLS = 7;
 
     static constexpr LCD_I2C::byte custom_symbols[NO_CUSTOM_SYMBOLS][8] =
             {{0x07, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x07}, /* LEFT */
@@ -31,7 +31,8 @@ Game::Game(LCD_I2C * lcd) noexcept : lcd(lcd)
              {0x1C, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x1C}, /* RIGHT */
              {0x00, 0x11, 0x0A, 0x04, 0x04, 0x0A, 0x11, 0x00}, /* X */
              {0x00, 0x0E, 0x11, 0x11, 0x11, 0x11, 0x0E, 0x00}, /* 0 */
-             {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}  /* ' ' */};
+             {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, /* ' ' */
+             {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}  /* ■ */};
 
     for (int location = 0; location < NO_CUSTOM_SYMBOLS; ++location)
     {
@@ -342,7 +343,22 @@ inline Action Game::Minimax(Board const & current_board) const noexcept
     return result.back().first;
 }
 
-void Game::DrawBoard() const noexcept
+inline void Game::DrawGame() const noexcept
+{
+    for (int row = 0; row < BOARD_SIZE; ++row)
+    {
+        lcd->SetCursor(row, 0);
+        lcd->PrintCustomChar(0);
+        lcd->SetCursor(row, 2);
+        lcd->PrintCustomChar(1);
+        lcd->SetCursor(row, 4);
+        lcd->PrintCustomChar(1);
+        lcd->SetCursor(row, 6);
+        lcd->PrintCustomChar(2);
+    }
+}
+
+void Game::DrawBoardState() const noexcept
 {
     static constexpr std::string_view horizontal_separator = "-------------\n";
     static constexpr std::string_view grid_format = "| %c | %c | %c |\n";
@@ -355,14 +371,12 @@ void Game::DrawBoard() const noexcept
                CharFromBoardState(game_board[row][2]));
         printf("%s", horizontal_separator.data());
 
-        lcd->SetCursor(row, 0);
-        lcd->PrintCustomChar(0);
+        lcd->SetCursor(row, 1);
         lcd->PrintCustomChar(LCDCharLocationFromBoardState(game_board[row][0]));
-        lcd->PrintCustomChar(1);
+        lcd->SetCursor(row, 3);
         lcd->PrintCustomChar(LCDCharLocationFromBoardState(game_board[row][1]));
-        lcd->PrintCustomChar(1);
+        lcd->SetCursor(row, 5);
         lcd->PrintCustomChar(LCDCharLocationFromBoardState(game_board[row][2]));
-        lcd->PrintCustomChar(2);
     }
 }
 
@@ -374,7 +388,16 @@ void Game::Internal_Play() noexcept
         {
             static Player choice;
 
-            printf("Choose between X or 0:\n");
+            lcd->SetCursor(0, 10);
+            lcd->PrintString("Choose ");
+            lcd->SetCursor(1, 10);
+            lcd->PrintCustomChar(3);
+            lcd->PrintString(" or ");
+            lcd->PrintCustomChar(4);
+            lcd->PrintChar(' ');
+
+            printf("Choose X or 0:\n");
+
             scanf(" %c", &choice);
             if (toupper(choice) == 'X')
             {
@@ -386,7 +409,13 @@ void Game::Internal_Play() noexcept
             }
             else
             {
-                printf("Invalid player\n");
+                lcd->SetCursor(0, 10);
+                lcd->PrintString("Invalid");
+                lcd->SetCursor(1, 10);
+                lcd->PrintString("player!");
+
+                printf("Invalid player!\n");
+                sleep_ms(3000);
                 break;
             }
         }
@@ -395,7 +424,7 @@ void Game::Internal_Play() noexcept
             static bool game_over;
             static Player current_player;
 
-            DrawBoard();
+            DrawBoardState();
 
             game_over = Is_Terminal(game_board);
             current_player = Get_Current_Player(game_board);
@@ -457,6 +486,8 @@ void Game::Internal_Play() noexcept
 
 [[noreturn]] void Game::Play() noexcept
 {
+    lcd->BacklightOn();
+    DrawGame();
     while (true)
     {
         Reset_Board();

@@ -9,7 +9,7 @@
 
 #include "LCD_I2C.hpp"
 
-LCD_I2C::LCD_I2C(byte address, byte columns, byte rows, uint SDA_pin, uint SCL_pin, i2c_inst * I2C_instance) noexcept
+LCD_I2C::LCD_I2C(byte address, byte columns, byte rows, i2c_inst * I2C_instance, uint SDA_pin, uint SCL_pin) noexcept
         : address(address), columns(columns), rows(rows), backlight(NO_BACKLIGHT), I2C_instance(I2C_instance)
 {
     i2c_init(I2C_instance, 100'000);
@@ -190,7 +190,7 @@ void LCD_I2C::PrintChar(byte character) const noexcept
     Send_Char(character);
 }
 
-void LCD_I2C::Print(std::string_view str) const noexcept
+void LCD_I2C::PrintString(std::string_view str) const noexcept
 {
     for (char const character : str)
     {
