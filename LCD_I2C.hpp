@@ -9,11 +9,11 @@
 
 #pragma once
 
-#include <string_view>
-#include <cstdint>
-
 #include <hardware/gpio.h>
 #include <hardware/i2c.h>
+
+#include <string_view>
+#include <cstdint>
 
 class LCD_I2C
 {
@@ -21,6 +21,7 @@ class LCD_I2C
     using byte = uint8_t;
 
  private:
+
     // Commands
     static constexpr byte CLEAR_DISPLAY = 0x01;
     static constexpr byte RETURN_HOME = 0x02;
@@ -67,8 +68,6 @@ class LCD_I2C
     static constexpr byte ENABLE = 0x04;
     static constexpr byte READ_WRITE = 0x02;
     static constexpr byte REGISTER_SELECT = 0x01;
-
-    // Command flags
     static constexpr byte COMMAND = 0x00;
     static constexpr byte CHAR = 0x01;
 
@@ -82,38 +81,205 @@ class LCD_I2C
 
     i2c_inst * I2C_instance = nullptr;
 
+    /**
+     * Wrapper function for SDK's internal I2C protocol write function.
+     *
+     * @param val Value to be written
+     */
     inline void I2C_Write_Byte(byte val) const noexcept;
+
+    /**
+     * Creates a short impulse on the enable pin of the LCD.
+     *
+     * @param val Value to be written along with the pulse
+     */
     void Pulse_Enable(byte val) const noexcept;
+
+    /**
+     * Sends a nibble of data using the I2C protocol.
+     *
+     * @param val Value to be sent
+     */
     inline void Send_Nibble(byte val) const noexcept;
+
+    /**
+     * Send a byte of data as two nibbles using the function
+     * Send_Nibble(byte val).
+     *
+     * @param val Value to be sent
+     * @param mode The mode used when sending
+     */
     inline void Send_Byte(byte val, byte mode) const noexcept;
+
+    /**
+     * Sends a command to the LCD display using the function
+     * Send_Byte(byte val, byte mode).
+     *
+     * @param val Value to be sent
+     */
     inline void Send_Command(byte val) const noexcept;
+
+    /**
+     * Sends a character to the LCD display using the function
+     * Send_Byte(byte val, byte mode).
+     *
+     * @param val Value to be sent
+     */
     inline void Send_Char(byte val) const noexcept;
-    inline void Send_Write(byte val) const noexcept;
+
+    /**
+     * Sends an address or line of a custom character to the LCD display using
+     * the function Send_Byte(byte val, byte mode).
+     *
+     * @param val Value to be sent
+     */
+    inline void Send_Register_Select(byte val) const noexcept;
+
+    /**
+     * Establishes communication with the LCD using the I2C protocol and sets
+     * its default state: backlight is off, cursor and cursor blinking is off
+     * and the cursor's initial position is set at the beginning of the screen.
+     */
     inline void Init() noexcept;
 
  public:
-    LCD_I2C(byte address, byte columns, byte rows, i2c_inst * I2C_instance = PICO_DEFAULT_I2C_INSTANCE,
-            uint SDA_pin = PICO_DEFAULT_I2C_SDA_PIN, uint SCL_pin = PICO_DEFAULT_I2C_SCL_PIN) noexcept;
+
+    /**
+     * [Constructor] Initialises the I2C communication protocol using the
+     * provided instance and pins and calls the display's Init() function.
+     *
+     * @param address The I2C address
+     * @param columns The LCD's number of columns
+     * @param rows The LCD's number of rows
+     * @param I2C The I2C instance
+     * @param SDA The SDA pin
+     * @param SCL The SCL pin
+     */
+    LCD_I2C(byte address, byte columns, byte rows, i2c_inst * I2C = PICO_DEFAULT_I2C_INSTANCE,
+            uint SDA = PICO_DEFAULT_I2C_SDA_PIN, uint SCL = PICO_DEFAULT_I2C_SCL_PIN) noexcept;
+
+    /**
+     * Turns the display on.
+     */
     void DisplayOn() noexcept;
+
+    /**
+     * Turns the display off.
+     */
     void DisplayOff() noexcept;
-    void CursorOn() noexcept;
-    void CursorOff() noexcept;
-    void BlinkOn() noexcept;
-    void BlinkOff() noexcept;
-    void LeftToRight() noexcept;
-    void RightToLeft() noexcept;
-    void AutoscrollOn() noexcept;
-    void AutoscrollOff() noexcept;
+
+    /**
+     * Turns the backlight on.
+     */
     void BacklightOn() noexcept;
+
+    /**
+     * Turns the backlight off.
+     */
     void BacklightOff() noexcept;
-    void Clear() const noexcept;
-    void Home() const noexcept;
+
+    /**
+     * Turns the cursor on.
+     */
+    void CursorOn() noexcept;
+
+    /**
+     * Turns the cursor off.
+     */
+    void CursorOff() noexcept;
+
+    /**
+     * Turns the cursor's blinking on.
+     */
+    void CursorBlinkOn() noexcept;
+
+    /**
+     * Turns the cursor's blinking off.
+     */
+    void CursorBlinkOff() noexcept;
+
+    /**
+     * Sets the text flow from left to right.
+     */
+    void SetTextLeftToRight() noexcept;
+
+    /**
+     * Sets the text flow from right to left.
+     */
+    void SetTextRightToLeft() noexcept;
+
+    /**
+     * Right justify the text.
+     */
+    void JustifyRight() noexcept;
+
+    /**
+     * Left justify the text.
+     */
+    void JustifyLeft() noexcept;
+
+    /**
+     * Scrolls the display to the left.
+     */
     void ScrollDisplayLeft() const noexcept;
+
+    /**
+     * Scrolls the display to the right.
+     */
     void ScrollDisplayRight() const noexcept;
+
+    /**
+     * Clears the display and sets cursor's position at the beginning of the
+     * screen.
+     */
+    void Clear() const noexcept;
+
+    /**
+     * Sets cursor's position at the beginning of the screen.
+     */
+    void Home() const noexcept;
+
+    /**
+     * Sets the display's cursor to the position defined by the @p row and
+     * @p column.
+     *
+     * @param row The vertical position (Y axis)
+     * @param column The horizontal position (X axis)
+     */
     void SetCursor(byte row, byte column) const noexcept;
+
+    /**
+     * Prints the character on the display at the current cursor position.
+     *
+     * @param character The character to be printed
+     */
     void PrintChar(byte character) const noexcept;
+
+    /**
+     * Prints the string on the display starting at the current cursor position.
+     *
+     * @param str The string to be printed
+     */
     void PrintString(std::string_view str) const noexcept;
+
+    /**
+     * Prints the custom character on the display at the current cursor
+     * position, by specifying the location in memory.
+     *
+     * @param location The memory address
+     */
     void PrintCustomChar(byte location) const noexcept;
-    void CreateChar(byte location, byte const * char_map) const noexcept;
+
+    /**
+     * Creates a custom character by specifying the location in memory to be
+     * stored (8 locations maximum, starting from 0) and an array of 8 bytes.
+     * @code
+     * constexpr uint8_t BELL[8] = {0x04, 0x0E, 0x0E, 0x1F, 0x00, 0x04, 0x00, 0x00};
+     * @endcode
+     *
+     * @param location The memory address
+     * @param char_map The byte array
+     */
+    void CreateCustomChar(byte location, byte const * char_map) const noexcept;
 };
 

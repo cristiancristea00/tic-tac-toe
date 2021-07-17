@@ -9,18 +9,18 @@
 
 #include "LCD_I2C.hpp"
 
-LCD_I2C::LCD_I2C(byte address, byte columns, byte rows, i2c_inst * I2C_instance, uint SDA_pin, uint SCL_pin) noexcept
-        : address(address), columns(columns), rows(rows), backlight(NO_BACKLIGHT), I2C_instance(I2C_instance)
+LCD_I2C::LCD_I2C(byte address, byte columns, byte rows, i2c_inst * I2C, uint SDA, uint SCL) noexcept
+        : address(address), columns(columns), rows(rows), backlight(NO_BACKLIGHT), I2C_instance(I2C)
 {
-    i2c_init(I2C_instance, 100'000);
-    gpio_set_function(SDA_pin, GPIO_FUNC_I2C);
-    gpio_set_function(SCL_pin, GPIO_FUNC_I2C);
-    gpio_pull_up(SDA_pin);
-    gpio_pull_up(SCL_pin);
+    i2c_init(I2C, 100'000);
+    gpio_set_function(SDA, GPIO_FUNC_I2C);
+    gpio_set_function(SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(SDA);
+    gpio_pull_up(SCL);
     Init();
 }
 
-inline void LCD_I2C::I2C_Write_Byte(byte val) const noexcept // expanderWrite
+inline void LCD_I2C::I2C_Write_Byte(byte val) const noexcept
 {
     static byte data;
 
@@ -67,101 +67,9 @@ inline void LCD_I2C::Send_Char(byte val) const noexcept
     Send_Byte(val, CHAR);
 }
 
-void LCD_I2C::Send_Write(byte val) const noexcept
+void LCD_I2C::Send_Register_Select(byte val) const noexcept
 {
     Send_Byte(val, REGISTER_SELECT);
-}
-
-void LCD_I2C::DisplayOn() noexcept
-{
-    display_control |= DISPLAY_ON;
-    Send_Command(DISPLAY_CONTROL | display_control);
-}
-
-void LCD_I2C::DisplayOff() noexcept
-{
-    display_control &= ~DISPLAY_ON;
-    Send_Command(DISPLAY_CONTROL | display_control);
-}
-
-void LCD_I2C::CursorOn() noexcept
-{
-    display_control |= CURSOR_ON;
-    Send_Command(DISPLAY_CONTROL | display_control);
-}
-
-void LCD_I2C::CursorOff() noexcept
-{
-    display_control &= ~CURSOR_ON;
-    Send_Command(DISPLAY_CONTROL | display_control);
-}
-
-void LCD_I2C::BlinkOn() noexcept
-{
-    display_control |= BLINK_ON;
-    Send_Command(DISPLAY_CONTROL | display_control);
-}
-
-void LCD_I2C::BlinkOff() noexcept
-{
-    display_control &= ~BLINK_ON;
-    Send_Command(DISPLAY_CONTROL | display_control);
-}
-
-void LCD_I2C::ScrollDisplayLeft() const noexcept
-{
-    Send_Command(CURSOR_SHIFT | DISPLAY_MOVE | MOVE_LEFT);
-}
-
-void LCD_I2C::ScrollDisplayRight() const noexcept
-{
-    Send_Command(CURSOR_SHIFT | DISPLAY_MOVE | MOVE_RIGHT);
-}
-
-void LCD_I2C::LeftToRight() noexcept
-{
-    display_mode |= ENTRY_LEFT;
-    Send_Command(ENTRY_MODE_SET | display_mode);
-}
-
-void LCD_I2C::RightToLeft() noexcept
-{
-    display_mode &= ~ENTRY_LEFT;
-    Send_Command(ENTRY_MODE_SET | display_mode);
-}
-
-void LCD_I2C::AutoscrollOn() noexcept
-{
-    display_mode |= ENTRY_SHIFT_INCREMENT;
-    Send_Command(ENTRY_MODE_SET | display_mode);
-}
-
-void LCD_I2C::AutoscrollOff() noexcept
-{
-    display_mode &= ~ENTRY_SHIFT_INCREMENT;
-    Send_Command(ENTRY_MODE_SET | display_mode);
-}
-
-void LCD_I2C::BacklightOn() noexcept
-{
-    backlight = BACKLIGHT;
-    I2C_Write_Byte(backlight);
-}
-
-void LCD_I2C::BacklightOff() noexcept
-{
-    backlight = NO_BACKLIGHT;
-    I2C_Write_Byte(backlight);
-}
-
-void LCD_I2C::Clear() const noexcept
-{
-    Send_Command(CLEAR_DISPLAY);
-}
-
-void LCD_I2C::Home() const noexcept
-{
-    Send_Command(RETURN_HOME);
 }
 
 inline void LCD_I2C::Init() noexcept
@@ -182,10 +90,102 @@ inline void LCD_I2C::Init() noexcept
     Home();
 }
 
+void LCD_I2C::DisplayOn() noexcept
+{
+    display_control |= DISPLAY_ON;
+    Send_Command(DISPLAY_CONTROL | display_control);
+}
+
+void LCD_I2C::DisplayOff() noexcept
+{
+    display_control &= ~DISPLAY_ON;
+    Send_Command(DISPLAY_CONTROL | display_control);
+}
+
+void LCD_I2C::BacklightOn() noexcept
+{
+    backlight = BACKLIGHT;
+    I2C_Write_Byte(backlight);
+}
+
+void LCD_I2C::BacklightOff() noexcept
+{
+    backlight = NO_BACKLIGHT;
+    I2C_Write_Byte(backlight);
+}
+
+void LCD_I2C::CursorOn() noexcept
+{
+    display_control |= CURSOR_ON;
+    Send_Command(DISPLAY_CONTROL | display_control);
+}
+
+void LCD_I2C::CursorOff() noexcept
+{
+    display_control &= ~CURSOR_ON;
+    Send_Command(DISPLAY_CONTROL | display_control);
+}
+
+void LCD_I2C::CursorBlinkOn() noexcept
+{
+    display_control |= BLINK_ON;
+    Send_Command(DISPLAY_CONTROL | display_control);
+}
+
+void LCD_I2C::CursorBlinkOff() noexcept
+{
+    display_control &= ~BLINK_ON;
+    Send_Command(DISPLAY_CONTROL | display_control);
+}
+
+void LCD_I2C::SetTextLeftToRight() noexcept
+{
+    display_mode |= ENTRY_LEFT;
+    Send_Command(ENTRY_MODE_SET | display_mode);
+}
+
+void LCD_I2C::SetTextRightToLeft() noexcept
+{
+    display_mode &= ~ENTRY_LEFT;
+    Send_Command(ENTRY_MODE_SET | display_mode);
+}
+
+void LCD_I2C::JustifyRight() noexcept
+{
+    display_mode |= ENTRY_SHIFT_INCREMENT;
+    Send_Command(ENTRY_MODE_SET | display_mode);
+}
+
+void LCD_I2C::JustifyLeft() noexcept
+{
+    display_mode &= ~ENTRY_SHIFT_INCREMENT;
+    Send_Command(ENTRY_MODE_SET | display_mode);
+}
+
+void LCD_I2C::ScrollDisplayLeft() const noexcept
+{
+    Send_Command(CURSOR_SHIFT | DISPLAY_MOVE | MOVE_LEFT);
+}
+
+void LCD_I2C::ScrollDisplayRight() const noexcept
+{
+    Send_Command(CURSOR_SHIFT | DISPLAY_MOVE | MOVE_RIGHT);
+}
+
+void LCD_I2C::Clear() const noexcept
+{
+    Send_Command(CLEAR_DISPLAY);
+}
+
+void LCD_I2C::Home() const noexcept
+{
+    Send_Command(RETURN_HOME);
+}
+
 void LCD_I2C::SetCursor(byte row, byte column) const noexcept
 {
-    static constexpr byte row_offsets[] = {0x00, 0x40, 0x14, 0x54};
-    Send_Command(SET_DDRAM_ADDR | (row_offsets[row] + column));
+    static constexpr byte ROW_OFFSETS[] = {0x00, 0x40, 0x14, 0x54};
+    Send_Command(SET_DDRAM_ADDR | (ROW_OFFSETS[row] + column));
 }
 
 void LCD_I2C::PrintChar(byte character) const noexcept
@@ -203,15 +203,15 @@ void LCD_I2C::PrintString(std::string_view str) const noexcept
 
 void LCD_I2C::PrintCustomChar(byte location) const noexcept
 {
-    Send_Write(location);
+    Send_Register_Select(location);
 }
 
-void LCD_I2C::CreateChar(byte location, byte const * char_map) const noexcept
+void LCD_I2C::CreateCustomChar(byte location, byte const * char_map) const noexcept
 {
     location &= 0x7;
     Send_Command(SET_CGRAM_ADDR | (location << 3));
     for (int i = 0; i < 8; ++i)
     {
-        Send_Write(char_map[i]);
+        Send_Register_Select(char_map[i]);
     }
 }

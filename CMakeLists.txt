@@ -22,7 +22,7 @@ project(tic-tac-toe C CXX ASM)
 add_executable(tic-tac-toe main.cpp Game.cpp Game.hpp Action.cpp Action.hpp LCD_I2C.cpp LCD_I2C.hpp)
 
 pico_set_program_name(tic-tac-toe "Tic Tac Toe LCD Game")
-pico_set_program_version(tic-tac-toe "1.0")
+pico_set_program_version(tic-tac-toe "0.2")
 
 pico_enable_stdio_uart(tic-tac-toe 1)
 pico_enable_stdio_usb(tic-tac-toe 0)
@@ -34,3 +34,7 @@ target_link_libraries(tic-tac-toe pico_stdlib)
 target_link_libraries(tic-tac-toe hardware_i2c)
 
 pico_add_extra_outputs(tic-tac-toe)
+
+pico_set_program_url(tic-tac-toe "https://github.com/cristiancristea00/tic-tac-toe")
+pico_set_float_implementation(tic-tac-toe pico)
+pico_set_double_implementation(tic-tac-toe pico)

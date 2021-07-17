@@ -15,3 +15,8 @@ bool operator==(Action const & lhs, Action const & rhs) noexcept
 {
     return std::tie(lhs.row, lhs.column) == std::tie(rhs.row, rhs.column);
 }
+
+std::size_t Action::Hash::operator()(Action const & action) const noexcept
+{
+    return std::hash<uint8_t>()(action.row) ^ std::hash<uint8_t>()(action.column);
+}

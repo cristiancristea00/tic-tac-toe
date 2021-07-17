@@ -15,11 +15,16 @@
 class Action
 {
  public:
+    struct Hash
+    {
+        std::size_t operator()(Action const & action) const noexcept;
+    };
+
     int16_t row {};
     int16_t column {};
 
     Action() noexcept = default;
-    Action(uint8_t, uint8_t) noexcept;
+    Action(uint8_t row, uint8_t column) noexcept;
     friend bool operator==(Action const & lhs, Action const & rhs) noexcept;
 };
 
