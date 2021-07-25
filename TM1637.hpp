@@ -39,20 +39,99 @@ class TM1637
     pio_sm_config state_machine_config {};
     value current_segments {};
 
+    /**
+     * TODO
+     *
+     * @param DIO
+     * @param CLK
+     */
     inline void Init(byte DIO, byte CLK) noexcept;
+
+    /**
+     * TODO
+     */
     inline void Set_Clock_Divider() const noexcept;
+
+    /**
+     * TODO
+     *
+     * @param data
+     */
     void Send_4_Bytes(value data) const noexcept;
+
+    /**
+     * TODO
+     *
+     * @param number
+     * @param bit_mask
+     * @return
+     */
     static value Number_To_Segments(value number, value bit_mask) noexcept;
+
+    /**
+     * TODO
+     *
+     * @param number
+     * @param leading_zeros
+     * @return
+     */
     static unsigned long Two_Digits_To_Segment(value number, bool leading_zeros) noexcept;
 
  public:
+
+    /**
+     * TODO
+     *
+     * @param DIO
+     * @param CLK
+     * @param pio
+     */
     TM1637(byte DIO, byte CLK, PIO pio) noexcept;
+
+    /**
+     * TODO
+     *
+     * @param value
+     */
     void SetBrightness(byte value) noexcept;
-    void Display(int16_t number, bool leading_zeros) const noexcept;
+
+    /**
+     * TODO
+     *
+     * @param number
+     * @param leading_zeros
+     */
+    void Display(int16_t number, bool leading_zeros) noexcept;
+
+    /**
+     * TODO
+     *
+     * @param number
+     * @param leading_zeros
+     */
     void DisplayLeft(value number, bool leading_zeros) noexcept;
+
+    /**
+     * TODO
+     *
+     * @param number
+     * @param leading_zeros
+     */
     void DisplayRight(value number, bool leading_zeros) noexcept;
+
+    /**
+     * TODO
+     */
     void ColonOn() noexcept;
+
+    /**
+     * TODO
+     */
     void ColonOff() noexcept;
+
+    /**
+     * TODO
+     */
     void Clear() const noexcept;
 };
 

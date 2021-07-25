@@ -121,7 +121,7 @@ void TM1637::SetBrightness(byte value) noexcept
     Send_4_Bytes(current_segments);
 }
 
-void TM1637::Display(int16_t number, bool leading_zeros) const noexcept
+void TM1637::Display(int16_t number, bool leading_zeros) noexcept
 {
     bool is_positive;
 
@@ -180,7 +180,8 @@ void TM1637::Display(int16_t number, bool leading_zeros) const noexcept
         start_position = MAX_DIGITS - length;
     }
 
-    Send_4_Bytes(segments << (start_position * BYTE_SIZE));
+    current_segments = segments << (start_position * BYTE_SIZE);
+    Send_4_Bytes(current_segments);
 }
 
 void TM1637::DisplayLeft(value number, bool leading_zeros) noexcept
