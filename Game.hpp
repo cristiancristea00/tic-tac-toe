@@ -13,6 +13,7 @@
 
 #include "Action.hpp"
 #include "LCD_I2C.hpp"
+#include "TM1637.hpp"
 
 #include <unordered_map>
 #include <algorithm>
@@ -61,6 +62,7 @@ class Game
     bool ai_turn = false;
 
     LCD_I2C * lcd = nullptr;
+    TM1637 * led_segments = nullptr;
 
  private:
 
@@ -228,9 +230,11 @@ class Game
 
     /**
      * [Constructor] Defines the LCD custom symbols.
+     *
      * @param lcd The LCD object used for display
+     * @param led_segments The seven segment display used as a scoreboard
      */
-    explicit Game(LCD_I2C * lcd) noexcept;
+    Game(LCD_I2C * lcd, TM1637 * led_segments) noexcept;
 
     /**
      * Main function that the user uses to start the game.
