@@ -152,8 +152,8 @@ class LCD_I2C
      * @param columns The LCD's number of columns
      * @param rows The LCD's number of rows
      * @param I2C The I2C instance
-     * @param SDA The SDA pin
-     * @param SCL The SCL pin
+     * @param SDA The serial data pin
+     * @param SCL The serial clock pin
      */
     LCD_I2C(byte address, byte columns, byte rows, i2c_inst * I2C = PICO_DEFAULT_I2C_INSTANCE,
             uint SDA = PICO_DEFAULT_I2C_SDA_PIN, uint SCL = PICO_DEFAULT_I2C_SCL_PIN) noexcept;

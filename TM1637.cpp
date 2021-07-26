@@ -69,7 +69,7 @@ void TM1637::Send_4_Bytes(value data) const noexcept
     pio_sm_put_blocking(pio, state_machine, BRIGHTNESS_BASE + brightness);
 }
 
-TM1637::value TM1637::Number_To_Segments(value number, value bit_mask) noexcept
+TM1637::value TM1637::Number_To_Segments(value number, value bitmask) noexcept
 {
     static value segments;
     static value temp_segments;
@@ -87,9 +87,9 @@ TM1637::value TM1637::Number_To_Segments(value number, value bit_mask) noexcept
             segments = temp_segments + (segments << BYTE_SIZE);
         }
     }
-    if (bit_mask)
+    if (bitmask)
     {
-        segments &= bit_mask;
+        segments &= bitmask;
     }
     return segments;
 }
@@ -115,9 +115,9 @@ unsigned long TM1637::Two_Digits_To_Segment(value number, bool leading_zeros) no
     return segments;
 }
 
-void TM1637::SetBrightness(byte value) noexcept
+void TM1637::SetBrightness(byte brightness_level) noexcept
 {
-    brightness = std::min(value, MAX_BRIGHTNESS);
+    brightness = std::min(brightness_level, MAX_BRIGHTNESS);
     Send_4_Bytes(current_segments);
 }
 
@@ -149,7 +149,7 @@ void TM1637::Display(int16_t number, bool leading_zeros) noexcept
         length = 3 + is_positive;
     }
 
-    auto segments = Number_To_Segments(number, 0);
+    auto segments = Number_To_Segments(number);
     byte start_position = 0;
     if (leading_zeros && length < MAX_DIGITS)
     {
