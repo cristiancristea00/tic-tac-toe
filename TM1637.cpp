@@ -186,24 +186,35 @@ void TM1637::Display(int16_t number, bool leading_zeros) noexcept
 
 void TM1637::DisplayLeft(value number, bool leading_zeros) noexcept
 {
-    current_segments |= Two_Digits_To_Segment(number, leading_zeros);
+    current_segments = (current_segments & 0xFFFF0000) + Two_Digits_To_Segment(number, leading_zeros);
+    if (is_colon)
+    {
+        ColonOn();
+    }
     Send_4_Bytes(current_segments);
 }
 
 void TM1637::DisplayRight(value number, bool leading_zeros) noexcept
 {
-    current_segments |= Two_Digits_To_Segment(number, leading_zeros) << (2 * BYTE_SIZE);
+    current_segments = (current_segments & 0x0000FFFF) +
+            (Two_Digits_To_Segment(number, leading_zeros) << (2 * BYTE_SIZE));
+    if (is_colon)
+    {
+        ColonOn();
+    }
     Send_4_Bytes(current_segments);
 }
 
 void TM1637::ColonOn() noexcept
 {
+    is_colon = true;
     current_segments |= 0x8000;
     Send_4_Bytes(current_segments);
 }
 
 void TM1637::ColonOff() noexcept
 {
+    is_colon = false;
     current_segments &= ~0x8000;
     Send_4_Bytes(current_segments);
 }

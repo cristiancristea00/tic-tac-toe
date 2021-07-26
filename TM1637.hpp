@@ -33,6 +33,7 @@ class TM1637
 
     static constexpr byte DIGIT_TO_SEGMENTS[] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F};
 
+    bool is_colon {};
     byte brightness {};
     value current_segments {};
 
