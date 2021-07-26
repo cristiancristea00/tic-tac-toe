@@ -18,23 +18,22 @@ pico_sdk_init()
 project(tic-tac-toe C CXX ASM)
 
 # Add executable
-
-add_executable(tic-tac-toe main.cpp Game.cpp Game.hpp Action.cpp Action.hpp LCD_I2C.cpp LCD_I2C.hpp)
+add_executable(tic-tac-toe main.cpp Game.cpp Game.hpp Action.cpp Action.hpp LCD_I2C.cpp LCD_I2C.hpp TM1637.cpp TM1637.hpp)
+pico_generate_pio_header(tic-tac-toe ${CMAKE_CURRENT_LIST_DIR}/TM1637.pio)
 
 pico_set_program_name(tic-tac-toe "Tic Tac Toe LCD Game")
 pico_set_program_version(tic-tac-toe "0.2")
+pico_set_program_url(tic-tac-toe "https://github.com/cristiancristea00/tic-tac-toe")
+pico_set_program_description(tic-tac-toe "Copyright (c) 2021 Cristian Cristea")
+
 
 pico_enable_stdio_uart(tic-tac-toe 1)
 pico_enable_stdio_usb(tic-tac-toe 0)
 
-# Add the standard library to the build
-target_link_libraries(tic-tac-toe pico_stdlib)
-
-# Add any user requested libraries
-target_link_libraries(tic-tac-toe hardware_i2c)
+# Add the libraries to the build
+target_link_libraries(tic-tac-toe pico_stdlib hardware_i2c hardware_pio)
 
 pico_add_extra_outputs(tic-tac-toe)
 
-pico_set_program_url(tic-tac-toe "https://github.com/cristiancristea00/tic-tac-toe")
 pico_set_float_implementation(tic-tac-toe pico)
 pico_set_double_implementation(tic-tac-toe pico)

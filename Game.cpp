@@ -9,7 +9,7 @@
 
 #include "Game.hpp"
 
-Game::Game(LCD_I2C * lcd) noexcept : lcd(lcd)
+Game::Game(LCD_I2C * lcd, TM1637 * led_segments) noexcept : lcd(lcd), led_segments(led_segments)
 {
     static constexpr int NO_CUSTOM_SYMBOLS = 7;
 

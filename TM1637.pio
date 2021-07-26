@@ -1,0 +1,56 @@
+.program TM1637
+.side_set 1 opt
+
+   set pins, 1 side 1
+
+_start:
+   pull block
+
+_startCond:
+   set x, 7
+   set pins, 1  side 1 [7]
+   set pins, 0
+   set pins, 0  side 0
+
+_bitShiftLoop:
+   out pins, 1  side 0
+   nop          side 1
+   jmp x-- _bitShiftLoop side 0
+
+_ackCond:
+   set pins, 0  side 0
+   nop          side 1
+   nop          side 0 [1]
+
+_stopCond:
+   set pins, 0  side 1
+   set pins, 1  side 1
+
+   jmp !OSRE _startCond_sendDigit
+   jmp _start
+
+_startCond_sendDigit:
+   set pins, 1 side 1 [7]
+   set pins, 0
+   set pins, 0 side 0
+
+_sendCmdAndData:
+   set x, 7
+
+_bitShiftLoop_sendDigit:
+   out pins, 1 side 0
+   nop side 1
+   jmp x-- _bitShiftLoop_sendDigit side 0
+
+_ackCond_sendDigit:
+   set pins, 0 side 0
+   set y, 1 side 1
+   nop side 0 [1]
+   jmp !OSRE _sendCmdAndData
+
+_stopCond_sendDigit:
+   set pins, 0 side 1
+   set pins, 1 side 1
+
+   IN y, 32;
+   PUSH noblock;
