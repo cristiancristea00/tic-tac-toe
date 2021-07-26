@@ -61,6 +61,9 @@ class Game
     Player user = PLAYER_UNKNOWN;
     bool ai_turn = false;
 
+    Value score_X {};
+    Value score_0 {};
+
     LCD_I2C * lcd = nullptr;
     TM1637 * led_segments = nullptr;
 
@@ -225,6 +228,21 @@ class Game
      * Main game logic
      */
     void Internal_Play() noexcept;
+
+    /**
+     * Refreshes the led display to display the score changes.
+     */
+    void Update_Scoreboard() const noexcept;
+
+    /**
+     * Increases the X player scores and updates the display.
+     */
+    void Increase_X_Score() noexcept;
+
+    /**
+     * Increases the 0 player scores and updates the display.
+     */
+    void Increase_0_Score() noexcept;
 
  public:
 

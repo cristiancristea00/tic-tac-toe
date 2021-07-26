@@ -425,6 +425,14 @@ void Game::Internal_Play() noexcept
                 else
                 {
                     printf("Game Over: %c wins\n", winner);
+                    if (winner == PLAYER_X)
+                    {
+                        Increase_X_Score();
+                    }
+                    else
+                    {
+                        Increase_0_Score();
+                    }
                 }
                 break;
             }
@@ -470,10 +478,32 @@ void Game::Internal_Play() noexcept
     }
 }
 
+void Game::Update_Scoreboard() const noexcept
+{
+    led_segments->DisplayLeft(score_X, true);
+    led_segments->DisplayRight(score_0, true);
+}
+
+void Game::Increase_X_Score() noexcept
+{
+    ++score_X;
+    Update_Scoreboard();
+}
+
+void Game::Increase_0_Score() noexcept
+{
+    ++score_0;
+    Update_Scoreboard();
+}
+
 [[noreturn]] void Game::Play() noexcept
 {
     lcd->BacklightOn();
     Draw_Game();
+
+    led_segments->ColonOn();
+    Update_Scoreboard();
+
     while (true)
     {
         Reset_Board();
