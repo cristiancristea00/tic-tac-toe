@@ -181,6 +181,10 @@ void TM1637::Display(int16_t number, bool leading_zeros) noexcept
     }
 
     current_segments = segments << (start_position * BYTE_SIZE);
+    if (is_colon)
+    {
+        ColonOn();
+    }
     Send_4_Bytes(current_segments);
 }
 
