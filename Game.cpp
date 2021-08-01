@@ -28,24 +28,6 @@ Game::Game(LCD_I2C * lcd, TM1637 * led_segments) noexcept : lcd(lcd), led_segmen
     }
 }
 
-inline uint32_t Game::Get_Random_Seed() noexcept
-{
-    uint32_t random = 0x811c9dc5;
-    uint8_t next_byte = 0;
-    volatile uint32_t * rnd_reg = reinterpret_cast<unsigned long *>(ROSC_BASE + ROSC_RANDOMBIT_OFFSET);
-
-    for (int i = 0; i < 16; i++)
-    {
-        for (int k = 0; k < 8; k++)
-        {
-            next_byte = (next_byte << 1) | (*rnd_reg & 1);
-        }
-        random ^= next_byte;
-        random *= 0x01000193;
-    }
-    return random;
-}
-
 inline Game::BoardState Game::Board_State_From_Player(Player player) noexcept
 {
     if (player == PLAYER_X)
@@ -214,121 +196,6 @@ inline Game::Board Game::Get_Result_Board(Board const & current_board, Action co
     return action_board;
 }
 
-inline Action Game::Get_Best_Move(Board const & current_board) const noexcept
-{
-    static auto random_number_generator = std::mt19937 {Get_Random_Seed()};
-
-    if (Is_Terminal(current_board))
-    {
-        return Action();
-    }
-
-    auto actions = Get_Actions(current_board);
-    std::unordered_map<Action, Value, Action::Hash> possible_moves;
-    if (Get_Current_Player(current_board) == PLAYER_X)
-    {
-        Value max_value = VALUE_MIN;
-        for (Action const & action : actions)
-        {
-            possible_moves.emplace(action, Get_Min_Value(Get_Result_Board(current_board, action),
-                                                         VALUE_MIN, VALUE_MAX));
-            if (possible_moves[action] > max_value)
-            {
-                max_value = possible_moves[action];
-            }
-        }
-        for (auto it = possible_moves.begin(); it != possible_moves.end();)
-        {
-            if (it->second != max_value)
-            {
-                it = possible_moves.erase(it);
-            }
-            else
-            {
-                ++it;
-            }
-        }
-    }
-    else
-    {
-        Value min_value = VALUE_MAX;
-        for (Action const & action : actions)
-        {
-            possible_moves.emplace(action, Get_Max_Value(Get_Result_Board(current_board, action),
-                                                         VALUE_MIN, VALUE_MAX));
-            if (possible_moves[action] < min_value)
-            {
-                min_value = possible_moves[action];
-            }
-        }
-        for (auto it = possible_moves.begin(); it != possible_moves.end();)
-        {
-            if (it->second != min_value)
-            {
-                it = possible_moves.erase(it);
-            }
-            else
-            {
-                ++it;
-            }
-        }
-    }
-    std::vector<std::pair<Action, Value>> result(possible_moves.begin(), possible_moves.end());
-    for (auto const &[ACTION, VALUE] : result)
-    {
-        if (Is_Winner(Get_Current_Player(current_board), Get_Result_Board(current_board, ACTION)))
-        {
-            return ACTION;
-        }
-    }
-    std::sample(result.begin(), result.end(), std::back_inserter(result), 1, random_number_generator);
-    return result.back().first;
-}
-
-Game::Value Game::Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept
-{
-    if (Is_Terminal(current_board))
-    {
-        return Get_Board_Value(current_board);
-    }
-
-    Value value = VALUE_MAX;
-
-    auto current_actions = Get_Actions(current_board);
-    for (Action const & action : current_actions)
-    {
-        value = std::min(value, Get_Max_Value(Get_Result_Board(current_board, action), alpha, beta));
-        beta = std::min(beta, value);
-        if (value <= alpha)
-        {
-            return value;
-        }
-    }
-    return value;
-}
-
-Game::Value Game::Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept
-{
-    if (Is_Terminal(current_board))
-    {
-        return Get_Board_Value(current_board);
-    }
-
-    Value value = VALUE_MIN;
-
-    auto current_actions = Get_Actions(current_board);
-    for (Action const & action : current_actions)
-    {
-        value = std::max(value, Get_Min_Value(Get_Result_Board(current_board, action), alpha, beta));
-        alpha = std::max(alpha, value);
-        if (value >= beta)
-        {
-            return value;
-        }
-    }
-    return value;
-}
-
 inline void Game::Draw_Game() const noexcept
 {
     for (int row = 0; row < BOARD_SIZE; ++row)
@@ -449,7 +316,7 @@ void Game::Internal_Play() noexcept
             {
                 if (ai_turn)
                 {
-                    Action move = Get_Best_Move(game_board);
+                    auto move = assessment->GetNextMove(game_board);
                     game_board = Get_Result_Board(game_board, move);
                     ai_turn = false;
                 }
@@ -478,6 +345,23 @@ void Game::Internal_Play() noexcept
     }
 }
 
+void Game::Choose_Difficulty() noexcept
+{
+    static char difficulty[15];
+
+    do
+    {
+        printf("Choose difficulty:\n");
+        scanf(" %s", difficulty);
+        Change_Difficulty(difficulty);
+        if (assessment == nullptr)
+        {
+            printf("Invalid difficulty!\n");
+        }
+    }
+    while (assessment == nullptr);
+}
+
 void Game::Update_Scoreboard() const noexcept
 {
     led_segments->DisplayLeft(score_X, true);
@@ -496,9 +380,34 @@ void Game::Increase_0_Score() noexcept
     Update_Scoreboard();
 }
 
+void Game::Change_Difficulty(std::string difficulty) noexcept
+{
+    std::transform(difficulty.begin(), difficulty.end(), difficulty.begin(),
+                   [](unsigned char c) {return std::toupper(c);});
+
+    delete assessment;
+
+    if (difficulty == "EASY")
+    {
+        assessment = new EasyAssessment;
+    }
+    else if (difficulty == "MEDIUM")
+    {
+        assessment = new MediumAssessment;
+    }
+    else if (difficulty == "IMPOSSIBLE")
+    {
+        assessment = new ImpossibleAssessment;
+    }
+    else
+    {
+        assessment = nullptr;
+    }
+}
+
 [[noreturn]] void Game::Play() noexcept
 {
-    lcd->BacklightOn();
+    // lcd->BacklightOn();
     Draw_Game();
 
     led_segments->ColonOn();
@@ -507,6 +416,169 @@ void Game::Increase_0_Score() noexcept
     while (true)
     {
         Reset_Board();
+        Choose_Difficulty();
         Internal_Play();
     }
+}
+
+IGameAssessment::IGameAssessment() noexcept : random_number_generator(Get_Random_Seed()) {}
+
+inline uint32_t IGameAssessment::Get_Random_Seed() noexcept
+{
+    uint32_t random = 0x811c9dc5;
+    uint8_t next_byte = 0;
+    volatile uint32_t * rnd_reg = reinterpret_cast<unsigned long *>(ROSC_BASE + ROSC_RANDOMBIT_OFFSET);
+
+    for (int i = 0; i < 16; i++)
+    {
+        for (int k = 0; k < 8; k++)
+        {
+            next_byte = (next_byte << 1) | (*rnd_reg & 1);
+        }
+        random ^= next_byte;
+        random *= 0x01000193;
+    }
+    return random;
+}
+
+Action EasyAssessment::GetNextMove(Game::Board const & current_board) noexcept
+{
+    if (Game::Is_Terminal(current_board))
+    {
+        return {};
+    }
+
+    auto actions = Game::Get_Actions(current_board);
+
+    std::sample(actions.begin(), actions.end(), std::back_inserter(actions), 1, random_number_generator);
+    return actions.back();
+}
+
+Action MediumAssessment::GetNextMove(Game::Board const & current_board) noexcept
+{
+    // TODO
+
+    if (Game::Is_Terminal(current_board))
+    {
+        return {};
+    }
+
+    auto actions = Game::Get_Actions(current_board);
+    return {};
+}
+
+Game::Value ImpossibleAssessment::Get_Min_Value(Game::Board const & current_board,
+                                                Game::Value alpha, Game::Value beta) const noexcept
+{
+    if (Game::Is_Terminal(current_board))
+    {
+        return Game::Get_Board_Value(current_board);
+    }
+
+    Game::Value value = Game::VALUE_MAX;
+
+    auto current_actions = Game::Get_Actions(current_board);
+    for (Action const & action : current_actions)
+    {
+        value = std::min(value, Get_Max_Value(Game::Get_Result_Board(current_board, action), alpha, beta));
+        beta = std::min(beta, value);
+        if (value <= alpha)
+        {
+            return value;
+        }
+    }
+    return value;
+}
+
+Game::Value ImpossibleAssessment::Get_Max_Value(Game::Board const & current_board,
+                                                Game::Value alpha, Game::Value beta) const noexcept
+{
+    if (Game::Is_Terminal(current_board))
+    {
+        return Game::Get_Board_Value(current_board);
+    }
+
+    Game::Value value = Game::VALUE_MIN;
+
+    auto current_actions = Game::Get_Actions(current_board);
+    for (Action const & action : current_actions)
+    {
+        value = std::max(value, Get_Min_Value(Game::Get_Result_Board(current_board, action), alpha, beta));
+        alpha = std::max(alpha, value);
+        if (value >= beta)
+        {
+            return value;
+        }
+    }
+    return value;
+}
+
+Action ImpossibleAssessment::GetNextMove(Game::Board const & current_board) noexcept
+{
+    if (Game::Is_Terminal(current_board))
+    {
+        return {};
+    }
+
+    auto actions = Game::Get_Actions(current_board);
+
+    std::unordered_map<Action, Game::Value, Action::Hash> possible_moves;
+    if (Game::Get_Current_Player(current_board) == Game::PLAYER_X)
+    {
+        Game::Value max_value = Game::VALUE_MIN;
+        for (Action const & action : actions)
+        {
+            possible_moves.emplace(action, Get_Min_Value(Game::Get_Result_Board(current_board, action),
+                                                         Game::VALUE_MIN, Game::VALUE_MAX));
+            if (possible_moves[action] > max_value)
+            {
+                max_value = possible_moves[action];
+            }
+        }
+        for (auto it = possible_moves.begin(); it != possible_moves.end();)
+        {
+            if (it->second != max_value)
+            {
+                it = possible_moves.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
+    else
+    {
+        Game::Value min_value = Game::VALUE_MAX;
+        for (Action const & action : actions)
+        {
+            possible_moves.emplace(action, Get_Max_Value(Game::Get_Result_Board(current_board, action),
+                                                         Game::VALUE_MIN, Game::VALUE_MAX));
+            if (possible_moves[action] < min_value)
+            {
+                min_value = possible_moves[action];
+            }
+        }
+        for (auto it = possible_moves.begin(); it != possible_moves.end();)
+        {
+            if (it->second != min_value)
+            {
+                it = possible_moves.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
+    std::vector<std::pair<Action, Game::Value>> result(possible_moves.begin(), possible_moves.end());
+    for (auto const &[ACTION, VALUE] : result)
+    {
+        if (Game::Is_Winner(Game::Get_Current_Player(current_board), Game::Get_Result_Board(current_board, ACTION)))
+        {
+            return ACTION;
+        }
+    }
+    std::sample(result.begin(), result.end(), std::back_inserter(result), 1, random_number_generator);
+    return result.back().first;
 }

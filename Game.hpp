@@ -11,8 +11,8 @@
 
 #include <hardware/regs/rosc.h>
 
-#include "Action.hpp"
 #include "LCD_I2C.hpp"
+#include "Action.hpp"
 #include "TM1637.hpp"
 
 #include <unordered_map>
@@ -21,6 +21,8 @@
 #include <random>
 #include <vector>
 #include <array>
+
+class IGameAssessment;
 
 class Game
 {
@@ -39,9 +41,9 @@ class Game
 
     static constexpr uint8_t BOARD_SIZE = 3;
 
+    using Board = std::array<std::array<BoardState, BOARD_SIZE>, BOARD_SIZE>;
     using Player = uint8_t;
     using Value = int8_t;
-    using Board = std::array<std::array<BoardState, BOARD_SIZE>, BOARD_SIZE>;
 
     static constexpr Player PLAYER_X = 'X';
     static constexpr Player PLAYER_0 = '0';
@@ -60,22 +62,13 @@ class Game
     Board game_board {};
     Player user = PLAYER_UNKNOWN;
     bool ai_turn = false;
+    IGameAssessment * assessment = nullptr;
 
     Value score_X {};
     Value score_0 {};
 
     LCD_I2C * lcd = nullptr;
     TM1637 * led_segments = nullptr;
-
- private:
-
-    /**
-     * Random function found on Google that does the job, using something called
-     * Fowler–Noll–Vo hash function. I have no idea what it does.
-     *
-     * @return Random seed generated from the current board parameters
-     */
-    inline static uint32_t Get_Random_Seed() noexcept;
 
     /**
      * Converts the player type to a board piece.
@@ -184,37 +177,6 @@ class Game
     inline static Board Get_Result_Board(Board const & current_board, Action const & action) noexcept;
 
     /**
-     * Computes the best move for the current board configuration using the
-     * alpha–beta pruning minimax algorithm.
-     *
-     * @param current_board The board to be analysed
-     * @return The best move
-     */
-    [[nodiscard]] inline Action Get_Best_Move(Board const & current_board) const noexcept;
-
-    /**
-     * Helper function to get the minimum value possible used in the function
-     * Get_Best_Move(Board const &).
-     *
-     * @param current_board The board to be analysed
-     * @param alpha The alpha parameter
-     * @param beta The beta parameter
-     * @return The minimum value
-     */
-    [[nodiscard]] Game::Value Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept;
-
-    /**
-     * Helper function to get the maximum value possible used in the function
-     * Get_Best_Move(Board const &).
-     *
-     * @param current_board The board to be analysed
-     * @param alpha The alpha parameter
-     * @param beta The beta parameter
-     * @return The maximum value
-     */
-    [[nodiscard]] Game::Value Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept;
-
-    /**
      * Draws on the LCD the game board.
      */
     inline void Draw_Game() const noexcept;
@@ -244,6 +206,18 @@ class Game
      */
     void Increase_0_Score() noexcept;
 
+    /**
+     * TODO
+     *
+     * @param difficulty
+     */
+    void Change_Difficulty(std::string difficulty) noexcept;
+
+    /**
+     * TODO
+     */
+    void Choose_Difficulty() noexcept;
+
  public:
 
     /**
@@ -251,6 +225,7 @@ class Game
      *
      * @param lcd The LCD object used for display
      * @param led_segments The seven segment display used as a scoreboard
+     * @param led The status LED
      */
     Game(LCD_I2C * lcd, TM1637 * led_segments) noexcept;
 
@@ -258,4 +233,125 @@ class Game
      * Main function that the user uses to start the game.
      */
     [[noreturn]] void Play() noexcept;
+
+    friend class IGameAssessment;
+
+    friend class EasyAssessment;
+
+    friend class MediumAssessment;
+
+    friend class ImpossibleAssessment;
+};
+
+class IGameAssessment
+{
+ protected:
+
+    std::mt19937 random_number_generator;
+
+    /**
+     * Random function found on Google that does the job, using something called
+     * Fowler–Noll–Vo hash function. I have no idea what it does.
+     *
+     * @return Random seed generated from the current board parameters
+     */
+    inline static uint32_t Get_Random_Seed() noexcept;
+
+ public:
+
+    IGameAssessment() noexcept;
+
+    /**
+     * TODO
+     *
+     * @param current_board The board to be analysed
+     * @return
+     */
+    [[nodiscard]] virtual Action GetNextMove(Game::Board const & current_board) noexcept = 0;
+
+    /**
+     * [Destructor]
+     */
+    virtual ~IGameAssessment() noexcept = default;
+};
+
+class EasyAssessment final : public IGameAssessment
+{
+ public:
+
+    /**
+     * TODO
+     *
+     * @param current_board The board to be analysed
+     * @return
+     */
+    [[nodiscard]] Action GetNextMove(Game::Board const & current_board) noexcept final;
+
+    /**
+     * [Destructor]
+     */
+    ~EasyAssessment() noexcept final = default;
+};
+
+class MediumAssessment final : public IGameAssessment
+{
+ public:
+
+    /**
+     * TODO
+     *
+     * @param current_board The board to be analysed
+     * @return
+     */
+    [[nodiscard]] Action GetNextMove(Game::Board const & current_board) noexcept final;
+
+    /**
+     * [Destructor]
+     */
+    ~MediumAssessment() noexcept final = default;
+};
+
+class ImpossibleAssessment final : public IGameAssessment
+{
+ private:
+
+    /**
+     * Helper function to get the minimum value possible used in the function
+     * GetNextMove(Board const &).
+     *
+     * @param current_board The board to be analysed
+     * @param alpha The alpha parameter
+     * @param beta The beta parameter
+     * @return The minimum value
+     */
+    [[nodiscard]] Game::Value Get_Min_Value(Game::Board const & current_board,
+                                            Game::Value alpha, Game::Value beta) const noexcept;
+
+    /**
+     * Helper function to get the maximum value possible used in the function
+     * GetNextMove(Board const &).
+     *
+     * @param current_board The board to be analysed
+     * @param alpha The alpha parameter
+     * @param beta The beta parameter
+     * @return The maximum value
+     */
+    [[nodiscard]] Game::Value Get_Max_Value(Game::Board const & current_board,
+                                            Game::Value alpha, Game::Value beta) const noexcept;
+
+ public:
+
+    /**
+     * Computes the best move for the current board configuration using the
+     * alpha–beta pruning minimax algorithm.
+     *
+     * @param current_board The board to be analysed
+     * @return The best move
+     */
+    [[nodiscard]] Action GetNextMove(Game::Board const & current_board) noexcept final;
+
+    /**
+     * [Destructor]
+     */
+    ~ImpossibleAssessment() noexcept final = default;
 };
