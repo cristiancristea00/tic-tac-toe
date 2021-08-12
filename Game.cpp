@@ -389,15 +389,15 @@ void Game::Change_Difficulty(std::string difficulty) noexcept
 
     if (difficulty == "EASY")
     {
-        assessment = new EasyAssessment;
+        assessment = new EasyStrategy;
     }
     else if (difficulty == "MEDIUM")
     {
-        assessment = new MediumAssessment;
+        assessment = new MediumStrategy;
     }
     else if (difficulty == "IMPOSSIBLE")
     {
-        assessment = new ImpossibleAssessment;
+        assessment = new ImpossibleStrategy;
     }
     else
     {
@@ -421,9 +421,9 @@ void Game::Change_Difficulty(std::string difficulty) noexcept
     }
 }
 
-IGameAssessment::IGameAssessment() noexcept : random_number_generator(Get_Random_Seed()) {}
+IGameStrategy::IGameStrategy() noexcept : random_number_generator(Get_Random_Seed()) {}
 
-inline uint32_t IGameAssessment::Get_Random_Seed() noexcept
+inline uint32_t IGameStrategy::Get_Random_Seed() noexcept
 {
     uint32_t random = 0x811c9dc5;
     uint8_t next_byte = 0;
@@ -441,7 +441,7 @@ inline uint32_t IGameAssessment::Get_Random_Seed() noexcept
     return random;
 }
 
-Action EasyAssessment::GetNextMove(Game::Board const & current_board) noexcept
+Action EasyStrategy::GetNextMove(Game::Board const & current_board) noexcept
 {
     if (Game::Is_Terminal(current_board))
     {
@@ -454,7 +454,7 @@ Action EasyAssessment::GetNextMove(Game::Board const & current_board) noexcept
     return actions.back();
 }
 
-Action MediumAssessment::GetNextMove(Game::Board const & current_board) noexcept
+Action MediumStrategy::GetNextMove(Game::Board const & current_board) noexcept
 {
     // TODO
 
@@ -467,8 +467,8 @@ Action MediumAssessment::GetNextMove(Game::Board const & current_board) noexcept
     return {};
 }
 
-Game::Value ImpossibleAssessment::Get_Min_Value(Game::Board const & current_board,
-                                                Game::Value alpha, Game::Value beta) const noexcept
+Game::Value ImpossibleStrategy::Get_Min_Value(Game::Board const & current_board,
+                                              Game::Value alpha, Game::Value beta) const noexcept
 {
     if (Game::Is_Terminal(current_board))
     {
@@ -490,8 +490,8 @@ Game::Value ImpossibleAssessment::Get_Min_Value(Game::Board const & current_boar
     return value;
 }
 
-Game::Value ImpossibleAssessment::Get_Max_Value(Game::Board const & current_board,
-                                                Game::Value alpha, Game::Value beta) const noexcept
+Game::Value ImpossibleStrategy::Get_Max_Value(Game::Board const & current_board,
+                                              Game::Value alpha, Game::Value beta) const noexcept
 {
     if (Game::Is_Terminal(current_board))
     {
@@ -513,7 +513,7 @@ Game::Value ImpossibleAssessment::Get_Max_Value(Game::Board const & current_boar
     return value;
 }
 
-Action ImpossibleAssessment::GetNextMove(Game::Board const & current_board) noexcept
+Action ImpossibleStrategy::GetNextMove(Game::Board const & current_board) noexcept
 {
     if (Game::Is_Terminal(current_board))
     {

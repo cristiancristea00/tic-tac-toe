@@ -22,7 +22,7 @@
 #include <vector>
 #include <array>
 
-class IGameAssessment;
+class IGameStrategy;
 
 class Game
 {
@@ -62,7 +62,7 @@ class Game
     Board game_board {};
     Player user = PLAYER_UNKNOWN;
     bool ai_turn = false;
-    IGameAssessment * assessment = nullptr;
+    IGameStrategy * assessment = nullptr;
 
     Value score_X {};
     Value score_0 {};
@@ -234,16 +234,16 @@ class Game
      */
     [[noreturn]] void Play() noexcept;
 
-    friend class IGameAssessment;
+    friend class IGameStrategy;
 
-    friend class EasyAssessment;
+    friend class EasyStrategy;
 
-    friend class MediumAssessment;
+    friend class MediumStrategy;
 
-    friend class ImpossibleAssessment;
+    friend class ImpossibleStrategy;
 };
 
-class IGameAssessment
+class IGameStrategy
 {
  protected:
 
@@ -259,7 +259,7 @@ class IGameAssessment
 
  public:
 
-    IGameAssessment() noexcept;
+    IGameStrategy() noexcept;
 
     /**
      * TODO
@@ -272,10 +272,10 @@ class IGameAssessment
     /**
      * [Destructor]
      */
-    virtual ~IGameAssessment() noexcept = default;
+    virtual ~IGameStrategy() noexcept = default;
 };
 
-class EasyAssessment final : public IGameAssessment
+class EasyStrategy final : public IGameStrategy
 {
  public:
 
@@ -290,10 +290,10 @@ class EasyAssessment final : public IGameAssessment
     /**
      * [Destructor]
      */
-    ~EasyAssessment() noexcept final = default;
+    ~EasyStrategy() noexcept final = default;
 };
 
-class MediumAssessment final : public IGameAssessment
+class MediumStrategy final : public IGameStrategy
 {
  public:
 
@@ -308,10 +308,10 @@ class MediumAssessment final : public IGameAssessment
     /**
      * [Destructor]
      */
-    ~MediumAssessment() noexcept final = default;
+    ~MediumStrategy() noexcept final = default;
 };
 
-class ImpossibleAssessment final : public IGameAssessment
+class ImpossibleStrategy final : public IGameStrategy
 {
  private:
 
@@ -353,5 +353,5 @@ class ImpossibleAssessment final : public IGameAssessment
     /**
      * [Destructor]
      */
-    ~ImpossibleAssessment() noexcept final = default;
+    ~ImpossibleStrategy() noexcept final = default;
 };
