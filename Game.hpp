@@ -22,8 +22,6 @@
 #include <vector>
 #include <array>
 
-class IGameStrategy;
-
 class Game
 {
  private:
@@ -62,7 +60,6 @@ class Game
     Board game_board {};
     Player user = PLAYER_UNKNOWN;
     bool ai_turn = false;
-    IGameStrategy * assessment = nullptr;
 
     Value score_X {};
     Value score_0 {};
@@ -234,124 +231,119 @@ class Game
      */
     [[noreturn]] void Play() noexcept;
 
-    friend class IGameStrategy;
-
-    friend class EasyStrategy;
-
-    friend class MediumStrategy;
-
-    friend class ImpossibleStrategy;
-};
-
-class IGameStrategy
-{
- protected:
-
-    std::mt19937 random_number_generator;
-
-    /**
-     * Random function found on Google that does the job, using something called
-     * Fowler–Noll–Vo hash function. I have no idea what it does.
-     *
-     * @return Random seed generated from the current board parameters
-     */
-    inline static uint32_t Get_Random_Seed() noexcept;
-
- public:
-
-    IGameStrategy() noexcept;
-
-    /**
-     * TODO
-     *
-     * @param current_board The board to be analysed
-     * @return
-     */
-    [[nodiscard]] virtual Action GetNextMove(Game::Board const & current_board) noexcept = 0;
-
-    /**
-     * [Destructor]
-     */
-    virtual ~IGameStrategy() noexcept = default;
-};
-
-class EasyStrategy final : public IGameStrategy
-{
- public:
-
-    /**
-     * TODO
-     *
-     * @param current_board The board to be analysed
-     * @return
-     */
-    [[nodiscard]] Action GetNextMove(Game::Board const & current_board) noexcept final;
-
-    /**
-     * [Destructor]
-     */
-    ~EasyStrategy() noexcept final = default;
-};
-
-class MediumStrategy final : public IGameStrategy
-{
- public:
-
-    /**
-     * TODO
-     *
-     * @param current_board The board to be analysed
-     * @return
-     */
-    [[nodiscard]] Action GetNextMove(Game::Board const & current_board) noexcept final;
-
-    /**
-     * [Destructor]
-     */
-    ~MediumStrategy() noexcept final = default;
-};
-
-class ImpossibleStrategy final : public IGameStrategy
-{
  private:
 
-    /**
-     * Helper function to get the minimum value possible used in the function
-     * GetNextMove(Board const &).
-     *
-     * @param current_board The board to be analysed
-     * @param alpha The alpha parameter
-     * @param beta The beta parameter
-     * @return The minimum value
-     */
-    [[nodiscard]] Game::Value Get_Min_Value(Game::Board const & current_board,
-                                            Game::Value alpha, Game::Value beta) const noexcept;
+    class IGameStrategy
+    {
+     protected:
 
-    /**
-     * Helper function to get the maximum value possible used in the function
-     * GetNextMove(Board const &).
-     *
-     * @param current_board The board to be analysed
-     * @param alpha The alpha parameter
-     * @param beta The beta parameter
-     * @return The maximum value
-     */
-    [[nodiscard]] Game::Value Get_Max_Value(Game::Board const & current_board,
-                                            Game::Value alpha, Game::Value beta) const noexcept;
+        std::mt19937 random_number_generator;
 
- public:
+        /**
+         * Random function found on Google that does the job, using something called
+         * Fowler–Noll–Vo hash function. I have no idea what it does.
+         *
+         * @return Random seed generated from the current board parameters
+         */
+        inline static uint32_t Get_Random_Seed() noexcept;
 
-    /**
-     * Computes the best move for the current board configuration using the
-     * alpha–beta pruning minimax algorithm.
-     *
-     * @param current_board The board to be analysed
-     * @return The best move
-     */
-    [[nodiscard]] Action GetNextMove(Game::Board const & current_board) noexcept final;
+     public:
 
-    /**
-     * [Destructor]
-     */
-    ~ImpossibleStrategy() noexcept final = default;
+        IGameStrategy() noexcept;
+
+        /**
+         * TODO
+         *
+         * @param current_board The board to be analysed
+         * @return
+         */
+        [[nodiscard]] virtual Action GetNextMove(Board const & current_board) noexcept = 0;
+
+        /**
+         * [Destructor]
+         */
+        virtual ~IGameStrategy() noexcept = default;
+    };
+
+    class EasyStrategy final : public IGameStrategy
+    {
+     public:
+
+        /**
+         * TODO
+         *
+         * @param current_board The board to be analysed
+         * @return
+         */
+        [[nodiscard]] Action GetNextMove(Board const & current_board) noexcept final;
+
+        /**
+         * [Destructor]
+         */
+        ~EasyStrategy() noexcept final = default;
+    };
+
+    class MediumStrategy final : public IGameStrategy
+    {
+     public:
+
+        /**
+         * Computes the best move for the current board configuration using the
+         * depth-limited alpha–beta pruning minimax algorithm.
+         *
+         * @param current_board The board to be analysed
+         * @return The best move
+         */
+        [[nodiscard]] Action GetNextMove(Board const & current_board) noexcept final;
+
+        /**
+         * [Destructor]
+         */
+        ~MediumStrategy() noexcept final = default;
+    };
+
+    class ImpossibleStrategy final : public IGameStrategy
+    {
+     private:
+
+        /**
+         * Helper function to get the minimum value possible used in the function
+         * GetNextMove(Board const &).
+         *
+         * @param current_board The board to be analysed
+         * @param alpha The alpha parameter
+         * @param beta The beta parameter
+         * @return The minimum value
+         */
+        [[nodiscard]] Value Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept;
+
+        /**
+         * Helper function to get the maximum value possible used in the function
+         * GetNextMove(Board const &).
+         *
+         * @param current_board The board to be analysed
+         * @param alpha The alpha parameter
+         * @param beta The beta parameter
+         * @return The maximum value
+         */
+        [[nodiscard]] Value Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept;
+
+     public:
+
+        /**
+         * Computes the best move for the current board configuration using the
+         * depth-unlimited alpha–beta pruning minimax algorithm.
+         *
+         * @param current_board The board to be analysed
+         * @return The best move
+         */
+        [[nodiscard]] Action GetNextMove(Board const & current_board) noexcept final;
+
+        /**
+         * [Destructor]
+         */
+        ~ImpossibleStrategy() noexcept final = default;
+    };
+
+    IGameStrategy * game_strategy = nullptr;
 };

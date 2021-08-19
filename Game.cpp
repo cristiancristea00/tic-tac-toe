@@ -11,7 +11,7 @@
 
 Game::Game(LCD_I2C * lcd, TM1637 * led_segments) noexcept : lcd(lcd), led_segments(led_segments)
 {
-    static constexpr int NO_CUSTOM_SYMBOLS = 7;
+    static constexpr int NO_CUSTOM_SYMBOLS = 6;
 
     static constexpr LCD_I2C::byte CUSTOM_SYMBOLS[NO_CUSTOM_SYMBOLS][8] =
             {{0x07, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x07}, /* LEFT */
@@ -19,8 +19,7 @@ Game::Game(LCD_I2C * lcd, TM1637 * led_segments) noexcept : lcd(lcd), led_segmen
              {0x1C, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x1C}, /* RIGHT */
              {0x00, 0x11, 0x0A, 0x04, 0x04, 0x0A, 0x11, 0x00}, /* X */
              {0x00, 0x0E, 0x11, 0x11, 0x11, 0x11, 0x0E, 0x00}, /* 0 */
-             {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, /* ' ' */
-             {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}  /* ■ */};
+             {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}  /* ' ' */};
 
     for (int location = 0; location < NO_CUSTOM_SYMBOLS; ++location)
     {
@@ -316,7 +315,7 @@ void Game::Internal_Play() noexcept
             {
                 if (ai_turn)
                 {
-                    auto move = assessment->GetNextMove(game_board);
+                    auto move = game_strategy->GetNextMove(game_board);
                     game_board = Get_Result_Board(game_board, move);
                     ai_turn = false;
                 }
@@ -354,12 +353,12 @@ void Game::Choose_Difficulty() noexcept
         printf("Choose difficulty:\n");
         scanf(" %s", difficulty);
         Change_Difficulty(difficulty);
-        if (assessment == nullptr)
+        if (game_strategy == nullptr)
         {
             printf("Invalid difficulty!\n");
         }
     }
-    while (assessment == nullptr);
+    while (game_strategy == nullptr);
 }
 
 void Game::Update_Scoreboard() const noexcept
@@ -385,23 +384,23 @@ void Game::Change_Difficulty(std::string difficulty) noexcept
     std::transform(difficulty.begin(), difficulty.end(), difficulty.begin(),
                    [](unsigned char c) {return std::toupper(c);});
 
-    delete assessment;
+    delete game_strategy;
 
     if (difficulty == "EASY")
     {
-        assessment = new EasyStrategy;
+        game_strategy = new EasyStrategy;
     }
     else if (difficulty == "MEDIUM")
     {
-        assessment = new MediumStrategy;
+        game_strategy = new MediumStrategy;
     }
     else if (difficulty == "IMPOSSIBLE")
     {
-        assessment = new ImpossibleStrategy;
+        game_strategy = new ImpossibleStrategy;
     }
     else
     {
-        assessment = nullptr;
+        game_strategy = nullptr;
     }
 }
 
@@ -421,9 +420,9 @@ void Game::Change_Difficulty(std::string difficulty) noexcept
     }
 }
 
-IGameStrategy::IGameStrategy() noexcept : random_number_generator(Get_Random_Seed()) {}
+Game::IGameStrategy::IGameStrategy() noexcept : random_number_generator(Get_Random_Seed()) {}
 
-inline uint32_t IGameStrategy::Get_Random_Seed() noexcept
+inline uint32_t Game::IGameStrategy::Get_Random_Seed() noexcept
 {
     uint32_t random = 0x811c9dc5;
     uint8_t next_byte = 0;
@@ -441,46 +440,45 @@ inline uint32_t IGameStrategy::Get_Random_Seed() noexcept
     return random;
 }
 
-Action EasyStrategy::GetNextMove(Game::Board const & current_board) noexcept
+Action Game::EasyStrategy::GetNextMove(Board const & current_board) noexcept
 {
-    if (Game::Is_Terminal(current_board))
+    if (Is_Terminal(current_board))
     {
         return {};
     }
 
-    auto actions = Game::Get_Actions(current_board);
+    auto actions = Get_Actions(current_board);
 
     std::sample(actions.begin(), actions.end(), std::back_inserter(actions), 1, random_number_generator);
     return actions.back();
 }
 
-Action MediumStrategy::GetNextMove(Game::Board const & current_board) noexcept
+Action Game::MediumStrategy::GetNextMove(Board const & current_board) noexcept
 {
     // TODO
 
-    if (Game::Is_Terminal(current_board))
+    if (Is_Terminal(current_board))
     {
         return {};
     }
 
-    auto actions = Game::Get_Actions(current_board);
+    auto actions = Get_Actions(current_board);
     return {};
 }
 
-Game::Value ImpossibleStrategy::Get_Min_Value(Game::Board const & current_board,
-                                              Game::Value alpha, Game::Value beta) const noexcept
+Game::Value Game::ImpossibleStrategy::Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept
 {
-    if (Game::Is_Terminal(current_board))
+    if (Is_Terminal(current_board))
     {
-        return Game::Get_Board_Value(current_board);
+        return Get_Board_Value(current_board);
     }
 
-    Game::Value value = Game::VALUE_MAX;
+    Value value = VALUE_MAX;
 
-    auto current_actions = Game::Get_Actions(current_board);
+    auto current_actions = Get_Actions(current_board);
     for (Action const & action : current_actions)
     {
-        value = std::min(value, Get_Max_Value(Game::Get_Result_Board(current_board, action), alpha, beta));
+        value = std::min(value, Get_Max_Value(Get_Result_Board(current_board, action), alpha, beta));
         beta = std::min(beta, value);
         if (value <= alpha)
         {
@@ -490,20 +488,19 @@ Game::Value ImpossibleStrategy::Get_Min_Value(Game::Board const & current_board,
     return value;
 }
 
-Game::Value ImpossibleStrategy::Get_Max_Value(Game::Board const & current_board,
-                                              Game::Value alpha, Game::Value beta) const noexcept
+Game::Value Game::ImpossibleStrategy::Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept
 {
-    if (Game::Is_Terminal(current_board))
+    if (Is_Terminal(current_board))
     {
-        return Game::Get_Board_Value(current_board);
+        return Get_Board_Value(current_board);
     }
 
-    Game::Value value = Game::VALUE_MIN;
+    Value value = VALUE_MIN;
 
-    auto current_actions = Game::Get_Actions(current_board);
+    auto current_actions = Get_Actions(current_board);
     for (Action const & action : current_actions)
     {
-        value = std::max(value, Get_Min_Value(Game::Get_Result_Board(current_board, action), alpha, beta));
+        value = std::max(value, Get_Min_Value(Get_Result_Board(current_board, action), alpha, beta));
         alpha = std::max(alpha, value);
         if (value >= beta)
         {
@@ -513,23 +510,23 @@ Game::Value ImpossibleStrategy::Get_Max_Value(Game::Board const & current_board,
     return value;
 }
 
-Action ImpossibleStrategy::GetNextMove(Game::Board const & current_board) noexcept
+Action Game::ImpossibleStrategy::GetNextMove(Board const & current_board) noexcept
 {
-    if (Game::Is_Terminal(current_board))
+    if (Is_Terminal(current_board))
     {
         return {};
     }
 
-    auto actions = Game::Get_Actions(current_board);
+    auto actions = Get_Actions(current_board);
 
-    std::unordered_map<Action, Game::Value, Action::Hash> possible_moves;
-    if (Game::Get_Current_Player(current_board) == Game::PLAYER_X)
+    std::unordered_map<Action, Value, Action::Hash> possible_moves;
+    if (Get_Current_Player(current_board) == PLAYER_X)
     {
-        Game::Value max_value = Game::VALUE_MIN;
+        Value max_value = VALUE_MIN;
         for (Action const & action : actions)
         {
-            possible_moves.emplace(action, Get_Min_Value(Game::Get_Result_Board(current_board, action),
-                                                         Game::VALUE_MIN, Game::VALUE_MAX));
+            possible_moves.emplace(action, Get_Min_Value(Get_Result_Board(current_board, action),
+                                                         VALUE_MIN, VALUE_MAX));
             if (possible_moves[action] > max_value)
             {
                 max_value = possible_moves[action];
@@ -549,11 +546,11 @@ Action ImpossibleStrategy::GetNextMove(Game::Board const & current_board) noexce
     }
     else
     {
-        Game::Value min_value = Game::VALUE_MAX;
+        Value min_value = VALUE_MAX;
         for (Action const & action : actions)
         {
-            possible_moves.emplace(action, Get_Max_Value(Game::Get_Result_Board(current_board, action),
-                                                         Game::VALUE_MIN, Game::VALUE_MAX));
+            possible_moves.emplace(action, Get_Max_Value(Get_Result_Board(current_board, action),
+                                                         VALUE_MIN, VALUE_MAX));
             if (possible_moves[action] < min_value)
             {
                 min_value = possible_moves[action];
@@ -571,10 +568,10 @@ Action ImpossibleStrategy::GetNextMove(Game::Board const & current_board) noexce
             }
         }
     }
-    std::vector<std::pair<Action, Game::Value>> result(possible_moves.begin(), possible_moves.end());
+    std::vector<std::pair<Action, Value>> result(possible_moves.begin(), possible_moves.end());
     for (auto const &[ACTION, VALUE] : result)
     {
-        if (Game::Is_Winner(Game::Get_Current_Player(current_board), Game::Get_Result_Board(current_board, ACTION)))
+        if (Is_Winner(Get_Current_Player(current_board), Get_Result_Board(current_board, ACTION)))
         {
             return ACTION;
         }
