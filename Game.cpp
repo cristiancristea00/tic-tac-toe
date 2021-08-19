@@ -27,6 +27,13 @@ Game::Game(LCD_I2C * lcd, TM1637 * led_segments) noexcept : lcd(lcd), led_segmen
     }
 }
 
+Game::~Game() noexcept
+{
+    delete lcd;
+    delete led_segments;
+    delete game_strategy;
+}
+
 inline Game::BoardState Game::Board_State_From_Player(Player player) noexcept
 {
     if (player == PLAYER_X)
@@ -126,7 +133,7 @@ Game::Player Game::Get_Current_Player(Board const & current_board) noexcept
     return (moves % 2 == 0) ? PLAYER_X : PLAYER_0;
 }
 
-inline std::vector<Action> Game::Get_Actions(Board const & current_board) noexcept
+inline const std::vector<Action> & Game::Get_Actions(Board const & current_board) noexcept
 {
     static std::vector<Action> actions;
     actions.reserve(BOARD_SIZE * BOARD_SIZE);
@@ -188,10 +195,10 @@ inline Game::Value Game::Get_Board_Value(Board const & current_board) noexcept
     }
 }
 
-inline Game::Board Game::Get_Result_Board(Board const & current_board, Action const & action) noexcept
+inline Game::Board Game::Get_Result_Board(Board const & current_board, Action const & action, Player player) noexcept
 {
     auto action_board = current_board;
-    action_board[action.row][action.column] = Board_State_From_Player(Get_Current_Player(current_board));
+    action_board[action.row][action.column] = Board_State_From_Player(player);
     return action_board;
 }
 
@@ -316,7 +323,7 @@ void Game::Internal_Play() noexcept
                 if (ai_turn)
                 {
                     auto move = game_strategy->GetNextMove(game_board);
-                    game_board = Get_Result_Board(game_board, move);
+                    game_board = Get_Result_Board(game_board, move, Get_Current_Player(game_board));
                     ai_turn = false;
                 }
                 else
@@ -338,7 +345,7 @@ void Game::Internal_Play() noexcept
                     }
                 }
                 while (!Is_Valid_Action(game_board, move));
-                game_board = Get_Result_Board(game_board, move);
+                game_board = Get_Result_Board(game_board, move, Get_Current_Player(game_board));
             }
         }
     }
@@ -424,7 +431,7 @@ Game::IGameStrategy::IGameStrategy() noexcept : random_number_generator(Get_Rand
 
 inline uint32_t Game::IGameStrategy::Get_Random_Seed() noexcept
 {
-    uint32_t random = 0x811c9dc5;
+    uint32_t random = 0x811C9DC5;
     uint8_t next_byte = 0;
     volatile uint32_t * rnd_reg = reinterpret_cast<unsigned long *>(ROSC_BASE + ROSC_RANDOMBIT_OFFSET);
 
@@ -455,15 +462,24 @@ Action Game::EasyStrategy::GetNextMove(Board const & current_board) noexcept
 
 Action Game::MediumStrategy::GetNextMove(Board const & current_board) noexcept
 {
-    // TODO
-
     if (Is_Terminal(current_board))
     {
         return {};
     }
 
     auto actions = Get_Actions(current_board);
-    return {};
+
+    for (auto const & action : actions)
+    {
+        if (Is_Winner(PLAYER_X, Get_Result_Board(current_board, action, PLAYER_X)) ||
+                Is_Winner(PLAYER_0, Get_Result_Board(current_board, action, PLAYER_0)))
+        {
+            return action;
+        }
+    }
+
+    std::sample(actions.begin(), actions.end(), std::back_inserter(actions), 1, random_number_generator);
+    return actions.back();
 }
 
 Game::Value Game::ImpossibleStrategy::Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept
@@ -478,7 +494,9 @@ Game::Value Game::ImpossibleStrategy::Get_Min_Value(Board const & current_board,
     auto current_actions = Get_Actions(current_board);
     for (Action const & action : current_actions)
     {
-        value = std::min(value, Get_Max_Value(Get_Result_Board(current_board, action), alpha, beta));
+        value = std::min(value, Get_Max_Value(Get_Result_Board(current_board,
+                                                               action,
+                                                               Get_Current_Player(current_board)), alpha, beta));
         beta = std::min(beta, value);
         if (value <= alpha)
         {
@@ -500,7 +518,9 @@ Game::Value Game::ImpossibleStrategy::Get_Max_Value(Board const & current_board,
     auto current_actions = Get_Actions(current_board);
     for (Action const & action : current_actions)
     {
-        value = std::max(value, Get_Min_Value(Get_Result_Board(current_board, action), alpha, beta));
+        value = std::max(value, Get_Min_Value(Get_Result_Board(current_board,
+                                                               action,
+                                                               Get_Current_Player(current_board)), alpha, beta));
         alpha = std::max(alpha, value);
         if (value >= beta)
         {
@@ -525,7 +545,9 @@ Action Game::ImpossibleStrategy::GetNextMove(Board const & current_board) noexce
         Value max_value = VALUE_MIN;
         for (Action const & action : actions)
         {
-            possible_moves.emplace(action, Get_Min_Value(Get_Result_Board(current_board, action),
+            possible_moves.emplace(action, Get_Min_Value(Get_Result_Board(current_board,
+                                                                          action,
+                                                                          Get_Current_Player(current_board)),
                                                          VALUE_MIN, VALUE_MAX));
             if (possible_moves[action] > max_value)
             {
@@ -549,7 +571,9 @@ Action Game::ImpossibleStrategy::GetNextMove(Board const & current_board) noexce
         Value min_value = VALUE_MAX;
         for (Action const & action : actions)
         {
-            possible_moves.emplace(action, Get_Max_Value(Get_Result_Board(current_board, action),
+            possible_moves.emplace(action, Get_Max_Value(Get_Result_Board(current_board,
+                                                                          action,
+                                                                          Get_Current_Player(current_board)),
                                                          VALUE_MIN, VALUE_MAX));
             if (possible_moves[action] < min_value)
             {
@@ -571,7 +595,9 @@ Action Game::ImpossibleStrategy::GetNextMove(Board const & current_board) noexce
     std::vector<std::pair<Action, Value>> result(possible_moves.begin(), possible_moves.end());
     for (auto const &[ACTION, VALUE] : result)
     {
-        if (Is_Winner(Get_Current_Player(current_board), Get_Result_Board(current_board, ACTION)))
+        if (Is_Winner(Get_Current_Player(current_board), Get_Result_Board(current_board,
+                                                                          ACTION,
+                                                                          Get_Current_Player(current_board))))
         {
             return ACTION;
         }

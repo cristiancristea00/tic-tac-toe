@@ -129,7 +129,7 @@ class Game
      * @param current_board The board to be analysed
      * @return A vector of available moves
      */
-    inline static std::vector<Action> Get_Actions(Board const & current_board) noexcept;
+    inline static const std::vector<Action> & Get_Actions(Board const & current_board) noexcept;
 
     /**
      * Get the winner of the current board configuration.
@@ -171,7 +171,9 @@ class Game
      * @param action The move to be made
      * @return The resulting board
      */
-    inline static Board Get_Result_Board(Board const & current_board, Action const & action) noexcept;
+    inline static Game::Board Get_Result_Board(Board const & current_board,
+                                               Action const & action,
+                                               Player player) noexcept;
 
     /**
      * Draws on the LCD the game board.
@@ -225,6 +227,11 @@ class Game
      * @param led The status LED
      */
     Game(LCD_I2C * lcd, TM1637 * led_segments) noexcept;
+
+    /**
+     * [Destructor]
+     */
+    ~Game() noexcept;
 
     /**
      * Main function that the user uses to start the game.
