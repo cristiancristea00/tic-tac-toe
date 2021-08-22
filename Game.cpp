@@ -9,11 +9,13 @@
 
 #include "Game.hpp"
 
-Game::Game(LCD_I2C * lcd, TM1637 * led_segments) noexcept : lcd(lcd), led_segments(led_segments)
+Game::Game(LCD_I2C * lcd, TM1637 * led_segments, Keypad * keypad) noexcept
+        : lcd(lcd), led_segments(led_segments), keypad(keypad)
 {
-    static constexpr int NO_CUSTOM_SYMBOLS = 6;
+    static constexpr size_t NO_CUSTOM_SYMBOLS = 6;
+    static constexpr size_t CUSTOM_SYMBOL_SIZE = 8;
 
-    static constexpr LCD_I2C::byte CUSTOM_SYMBOLS[NO_CUSTOM_SYMBOLS][8] =
+    static constexpr LCD_I2C::byte CUSTOM_SYMBOLS[NO_CUSTOM_SYMBOLS][CUSTOM_SYMBOL_SIZE] =
             {{0x07, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x07}, /* LEFT */
              {0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x1F}, /* CENTER */
              {0x1C, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x1C}, /* RIGHT */
@@ -21,7 +23,7 @@ Game::Game(LCD_I2C * lcd, TM1637 * led_segments) noexcept : lcd(lcd), led_segmen
              {0x00, 0x0E, 0x11, 0x11, 0x11, 0x11, 0x0E, 0x00}, /* 0 */
              {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}  /* ' ' */};
 
-    for (int location = 0; location < NO_CUSTOM_SYMBOLS; ++location)
+    for (size_t location = 0; location < NO_CUSTOM_SYMBOLS; ++location)
     {
         lcd->CreateCustomChar(location, CUSTOM_SYMBOLS[location]);
     }
@@ -31,6 +33,7 @@ Game::~Game() noexcept
 {
     delete lcd;
     delete led_segments;
+    delete keypad;
     delete game_strategy;
 }
 
@@ -78,9 +81,11 @@ LCD_I2C::byte Game::LCD_Char_Location_From_Board_State(BoardState board_state) n
 
 void Game::Reset_Board() noexcept
 {
-    for (int row = 0; row < BOARD_SIZE; ++row)
+    #pragma GCC unroll 3
+    for (size_t row = 0; row < BOARD_SIZE; ++row)
     {
-        for (int column = 0; column < BOARD_SIZE; ++column)
+        #pragma GCC unroll 3
+        for (size_t column = 0; column < BOARD_SIZE; ++column)
         {
             game_board[row][column] = BoardState::EMPTY;
         }
@@ -89,9 +94,11 @@ void Game::Reset_Board() noexcept
 
 inline bool Game::Is_Board_Full(Board const & current_board) noexcept
 {
-    for (int row = 0; row < BOARD_SIZE; ++row)
+    #pragma GCC unroll 3
+    for (size_t row = 0; row < BOARD_SIZE; ++row)
     {
-        for (int column = 0; column < BOARD_SIZE; ++column)
+        #pragma GCC unroll 3
+        for (size_t column = 0; column < BOARD_SIZE; ++column)
         {
             if (current_board[row][column] == BoardState::EMPTY)
             {
@@ -120,9 +127,11 @@ bool Game::Is_Winner(Player current_player, Board const & current_board) noexcep
 Game::Player Game::Get_Current_Player(Board const & current_board) noexcept
 {
     uint8_t moves = 0;
-    for (int row = 0; row < BOARD_SIZE; ++row)
+    #pragma GCC unroll 3
+    for (size_t row = 0; row < BOARD_SIZE; ++row)
     {
-        for (int column = 0; column < BOARD_SIZE; ++column)
+        #pragma GCC unroll 3
+        for (size_t column = 0; column < BOARD_SIZE; ++column)
         {
             if (current_board[row][column] != BoardState::EMPTY)
             {
@@ -139,9 +148,12 @@ inline const std::vector<Action> & Game::Get_Actions(Board const & current_board
     actions.reserve(BOARD_SIZE * BOARD_SIZE);
 
     actions.clear();
-    for (int row = 0; row < BOARD_SIZE; ++row)
+
+    #pragma GCC unroll 3
+    for (size_t row = 0; row < BOARD_SIZE; ++row)
     {
-        for (int column = 0; column < BOARD_SIZE; ++column)
+        #pragma GCC unroll 3
+        for (size_t column = 0; column < BOARD_SIZE; ++column)
         {
             if (current_board[row][column] == BoardState::EMPTY)
             {
@@ -204,7 +216,8 @@ inline Game::Board Game::Get_Result_Board(Board const & current_board, Action co
 
 inline void Game::Draw_Game() const noexcept
 {
-    for (int row = 0; row < BOARD_SIZE; ++row)
+    #pragma GCC unroll 3
+    for (size_t row = 0; row < BOARD_SIZE; ++row)
     {
         lcd->SetCursor(row, 0);
         lcd->PrintCustomChar(0);
@@ -223,7 +236,8 @@ void Game::Draw_Board_State() const noexcept
     static constexpr std::string_view GRID_FORMAT = "| %c | %c | %c |\n";
 
     printf("%s", HORIZONTAL_SEPARATOR.data());
-    for (int row = 0; row < BOARD_SIZE; ++row)
+    #pragma GCC unroll 3
+    for (size_t row = 0; row < BOARD_SIZE; ++row)
     {
         printf(GRID_FORMAT.data(), Char_From_Board_State(game_board[row][0]),
                Char_From_Board_State(game_board[row][1]),
@@ -435,9 +449,9 @@ inline uint32_t Game::IGameStrategy::Get_Random_Seed() noexcept
     uint8_t next_byte = 0;
     volatile uint32_t * rnd_reg = reinterpret_cast<unsigned long *>(ROSC_BASE + ROSC_RANDOMBIT_OFFSET);
 
-    for (int i = 0; i < 16; i++)
+    for (size_t i = 0; i < 16; i++)
     {
-        for (int k = 0; k < 8; k++)
+        for (size_t k = 0; k < 8; k++)
         {
             next_byte = (next_byte << 1) | (*rnd_reg & 1);
         }

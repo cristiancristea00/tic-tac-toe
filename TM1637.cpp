@@ -155,7 +155,7 @@ void TM1637::Display(int16_t number, bool leading_zeros) noexcept
     {
         if (is_positive)
         {
-            for (int i = length; i < MAX_DIGITS; ++i)
+            for (size_t i = length; i < MAX_DIGITS; ++i)
             {
                 segments = (segments << BYTE_SIZE) + DIGIT_TO_SEGMENTS[0];
             }
@@ -164,7 +164,7 @@ void TM1637::Display(int16_t number, bool leading_zeros) noexcept
         {
             segments = (segments << BYTE_SIZE) + 0x40;
             ++length;
-            for (int i = length; i < MAX_DIGITS - 1; ++i)
+            for (size_t i = length; i < MAX_DIGITS - 1; ++i)
             {
                 segments = (segments << BYTE_SIZE) + DIGIT_TO_SEGMENTS[0];
             }

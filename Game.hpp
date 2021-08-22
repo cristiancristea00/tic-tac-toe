@@ -14,6 +14,7 @@
 #include "LCD_I2C.hpp"
 #include "Action.hpp"
 #include "TM1637.hpp"
+#include "Keypad.hpp"
 
 #include <unordered_map>
 #include <algorithm>
@@ -66,6 +67,7 @@ class Game
 
     LCD_I2C * lcd = nullptr;
     TM1637 * led_segments = nullptr;
+    Keypad * keypad = nullptr;
 
     /**
      * Converts the player type to a board piece.
@@ -226,7 +228,7 @@ class Game
      * @param led_segments The seven segment display used as a scoreboard
      * @param led The status LED
      */
-    Game(LCD_I2C * lcd, TM1637 * led_segments) noexcept;
+    Game(LCD_I2C * lcd, TM1637 * led_segments, Keypad * keypad) noexcept;
 
     /**
      * [Destructor]
