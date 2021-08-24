@@ -208,14 +208,14 @@ class Game
     void Increase_0_Score() noexcept;
 
     /**
-     * TODO
+     * Sets a new game difficulty.
      *
-     * @param difficulty
+     * @param difficulty The new difficulty to be set
      */
     void Change_Difficulty(std::string difficulty) noexcept;
 
     /**
-     * TODO
+     * [TEMP FUNCTION] - TODO remove
      */
     void Choose_Difficulty() noexcept;
 
@@ -226,7 +226,7 @@ class Game
      *
      * @param lcd The LCD object used for display
      * @param led_segments The seven segment display used as a scoreboard
-     * @param led The status LED
+     * @param keypad The keypad used for input
      */
     Game(LCD_I2C * lcd, TM1637 * led_segments, Keypad * keypad) noexcept;
 
@@ -249,8 +249,8 @@ class Game
         std::mt19937 random_number_generator;
 
         /**
-         * Random function found on Google that does the job, using something called
-         * Fowler–Noll–Vo hash function. I have no idea what it does.
+         * Random function found on Google that does the job, using something
+         * called Fowler–Noll–Vo hash function. I have no idea what it does.
          *
          * @return Random seed generated from the current board parameters
          */
@@ -261,10 +261,10 @@ class Game
         IGameStrategy() noexcept;
 
         /**
-         * TODO
+         * Selects a move according to the current board configuration.
          *
          * @param current_board The board to be analysed
-         * @return
+         * @return A move
          */
         [[nodiscard]] virtual Action GetNextMove(Board const & current_board) noexcept = 0;
 
@@ -279,10 +279,10 @@ class Game
      public:
 
         /**
-         * TODO
+         * Selects a random move from the available ones.
          *
          * @param current_board The board to be analysed
-         * @return
+         * @return A random move
          */
         [[nodiscard]] Action GetNextMove(Board const & current_board) noexcept final;
 
@@ -297,11 +297,11 @@ class Game
      public:
 
         /**
-         * Computes the best move for the current board configuration using the
-         * depth-limited alpha–beta pruning minimax algorithm.
+         * Selects a random move from the available ones or a winning/blocking
+         * move if one is available.
          *
          * @param current_board The board to be analysed
-         * @return The best move
+         * @return A somewhat good move
          */
         [[nodiscard]] Action GetNextMove(Board const & current_board) noexcept final;
 
