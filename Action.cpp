@@ -9,14 +9,14 @@
 
 #include "Action.hpp"
 
-Action::Action(uint8_t row, uint8_t column) noexcept : row(row), column(column) {}
+Action::Action(int8_t row, int8_t column) noexcept : row(row), column(column) {}
 
 bool operator==(Action const & lhs, Action const & rhs) noexcept
 {
     return std::tie(lhs.row, lhs.column) == std::tie(rhs.row, rhs.column);
 }
 
-std::size_t Action::Hash::operator()(Action const & action) const noexcept
+size_t Action::Hash::operator()(Action const & action) const noexcept
 {
-    return std::hash<uint8_t>()(action.row) ^ std::hash<uint8_t>()(action.column);
+    return std::hash<int8_t>()(action.row) ^ std::hash<int8_t>()(action.column);
 }

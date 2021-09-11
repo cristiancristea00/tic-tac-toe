@@ -7,6 +7,7 @@
  * @copyright Copyright (C) 2021 Cristian Cristea. All rights reserved.
  ******************************************************************************/
 
+#include <array>
 #include "LCD_I2C.hpp"
 
 LCD_I2C::LCD_I2C(byte address, byte columns, byte rows, i2c_inst * I2C, uint SDA, uint SCL) noexcept
@@ -206,11 +207,11 @@ void LCD_I2C::PrintCustomChar(byte location) const noexcept
     Send_Register_Select(location);
 }
 
-void LCD_I2C::CreateCustomChar(byte location, byte const * char_map) const noexcept
+void LCD_I2C::CreateCustomChar(byte location, std::array<byte, CUSTOM_SYMBOL_SIZE> char_map) const noexcept
 {
     location &= 0x7;
     Send_Command(SET_CGRAM_ADDR | (location << 3));
-    for (int i = 0; i < 8; ++i)
+    for (size_t i = 0; i < CUSTOM_SYMBOL_SIZE; ++i)
     {
         Send_Register_Select(char_map[i]);
     }

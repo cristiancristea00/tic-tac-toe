@@ -26,7 +26,8 @@ inline void Keypad::Init() noexcept
     std::reverse(columns.begin(), columns.end());
 }
 
-[[nodiscard]] __attribute__((optimize("O0"))) Key Keypad::Poll() const noexcept
+[[nodiscard]] __attribute__((optimize("O0")))
+auto Keypad::Poll_Keys() const noexcept -> Key
 {
     static auto last_debounce_time = to_ms_since_boot(get_absolute_time());
     static constexpr auto DELAY_TIME = 100;
@@ -36,19 +37,32 @@ inline void Keypad::Init() noexcept
         last_debounce_time = to_ms_since_boot(get_absolute_time());
 
         #pragma GCC unroll 4
-        for (size_t row = 0; row < MAX_SIZE; ++row)
+        for (size_t row = 0; row < KEYPAD_SIZE; ++row)
         {
             #pragma GCC unroll 4
-            for (size_t column = 0; column < MAX_SIZE; ++column)
+            for (size_t column = 0; column < KEYPAD_SIZE; ++column)
             {
                 gpio_put(rows[row], HIGH);
                 if (gpio_get(columns[column]))
                 {
-                    return KEYS[row][column];
+                    return KEYS.at(row).at(column);
                 }
                 gpio_put(rows[row], LOW);
             }
         }
     }
     return Key::UNKOWN;
+}
+
+[[nodiscard]] auto Keypad::GetPressedKey() const noexcept -> Key
+{
+    Key key {};
+
+    do
+    {
+        key = Poll_Keys();
+    }
+    while (key == Key::UNKOWN);
+
+    return key;
 }

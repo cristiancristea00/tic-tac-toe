@@ -25,7 +25,7 @@ inline void TM1637::Init(byte DIO, byte CLK) noexcept
     state_machine_config = TM1637_program_get_default_config(offset);
 
     sm_config_set_sideset_pins(&state_machine_config, CLK);
-    auto both_pins = (1u << CLK) | (1u << DIO);
+    auto both_pins = (1U << CLK) | (1U << DIO);
     pio_sm_set_pins_with_mask(pio, state_machine, both_pins, both_pins);
     pio_sm_set_pindirs_with_mask(pio, state_machine, both_pins, both_pins);
 
@@ -40,9 +40,9 @@ inline void TM1637::Init(byte DIO, byte CLK) noexcept
     pio_sm_set_enabled(pio, state_machine, true);
 }
 
-inline void TM1637::Set_Clock_Divider() const noexcept
+inline void TM1637::Set_Clock_Divider() noexcept
 {
-    value system_frequency = clock_get_hz(clk_sys);
+    data system_frequency = clock_get_hz(clk_sys);
     float divider = static_cast<float>(system_frequency) / 45000;
     if (divider > 65536)
     {
@@ -52,55 +52,55 @@ inline void TM1637::Set_Clock_Divider() const noexcept
     {
         divider = 1;
     }
-    sm_config_set_clkdiv(const_cast<pio_sm_config *>(&state_machine_config), divider);
+    sm_config_set_clkdiv(&state_machine_config, divider);
 }
 
-void TM1637::Send_4_Bytes(value data) const noexcept
+void TM1637::Send_4_Bytes(data value) const noexcept
 {
-    static value data_1;
-    static value data_2;
+    static data data_1;
+    static data data_2;
 
-    data_1 = data & 0xFFFF;
-    data_2 = data >> 16;
-    pio_sm_put_blocking(pio, state_machine, (data_1 << (2 * BYTE_SIZE)) +
+    data_1 = value & 0xFFFFU;
+    data_2 = value >> 16U;
+    pio_sm_put_blocking(pio, state_machine, (data_1 << (2U * BYTE_SIZE)) +
             (WRITE_ADDRESS << BYTE_SIZE) + WRITE_MODE);
-    pio_sm_put_blocking(pio, state_machine, data_2 << (2 * BYTE_SIZE));
+    pio_sm_put_blocking(pio, state_machine, data_2 << (2U * BYTE_SIZE));
 
     pio_sm_put_blocking(pio, state_machine, BRIGHTNESS_BASE + brightness);
 }
 
-TM1637::value TM1637::Number_To_Segments(value number, value bitmask) noexcept
+auto TM1637::Number_To_Segments(data number, data bitmask) noexcept -> TM1637::data
 {
-    static value segments;
-    static value temp_segments;
+    static data segments;
+    static data temp_segments;
 
     if (number <= 9)
     {
-        segments = DIGIT_TO_SEGMENTS[number];
+        segments = DIGIT_TO_SEGMENTS.at(number);
     }
     else
     {
         while (number != 0)
         {
-            temp_segments = DIGIT_TO_SEGMENTS[number % 10];
+            temp_segments = DIGIT_TO_SEGMENTS.at(number % 10);
             number /= 10;
             segments = temp_segments + (segments << BYTE_SIZE);
         }
     }
-    if (bitmask)
+    if (bitmask != 0U)
     {
         segments &= bitmask;
     }
     return segments;
 }
 
-unsigned long TM1637::Two_Digits_To_Segment(value number, bool leading_zeros) noexcept
+auto TM1637::Two_Digits_To_Segment(data number, bool leading_zeros) noexcept -> TM1637::data
 {
-    value segments = Number_To_Segments(number, 0xFFFF);
+    data segments = Number_To_Segments(number, 0xFFFF);
 
     auto num_div = number / 10;
 
-    if (!num_div)
+    if (num_div == 0)
     {
         if (leading_zeros)
         {
@@ -123,7 +123,7 @@ void TM1637::SetBrightness(byte brightness_level) noexcept
 
 void TM1637::Display(int16_t number, bool leading_zeros) noexcept
 {
-    bool is_positive;
+    bool is_positive {};
 
     if (number >= 0)
     {
@@ -132,25 +132,25 @@ void TM1637::Display(int16_t number, bool leading_zeros) noexcept
     else
     {
         is_positive = false;
-        number = -number;
+        number = static_cast<int16_t>(-number);
     }
 
     byte length = 0;
     auto number_copy = number;
 
-    while (number_copy)
+    while (number_copy != 0)
     {
         ++length;
         number_copy /= 10;
     }
 
-    if (length > 3 + is_positive)
+    if (length > 3 + static_cast<int>(is_positive))
     {
-        length = 3 + is_positive;
+        length = 3 + static_cast<int>(is_positive);
     }
 
     auto segments = Number_To_Segments(number);
-    byte start_position = 0;
+    byte start_position = 0U;
     if (leading_zeros && length < MAX_DIGITS)
     {
         if (is_positive)
@@ -188,7 +188,7 @@ void TM1637::Display(int16_t number, bool leading_zeros) noexcept
     Send_4_Bytes(current_segments);
 }
 
-void TM1637::DisplayLeft(value number, bool leading_zeros) noexcept
+void TM1637::DisplayLeft(data number, bool leading_zeros) noexcept
 {
     current_segments = (current_segments & 0xFFFF0000) + Two_Digits_To_Segment(number, leading_zeros);
     if (is_colon)
@@ -198,7 +198,7 @@ void TM1637::DisplayLeft(value number, bool leading_zeros) noexcept
     Send_4_Bytes(current_segments);
 }
 
-void TM1637::DisplayRight(value number, bool leading_zeros) noexcept
+void TM1637::DisplayRight(data number, bool leading_zeros) noexcept
 {
     current_segments = (current_segments & 0x0000FFFF) +
             (Two_Digits_To_Segment(number, leading_zeros) << (2 * BYTE_SIZE));

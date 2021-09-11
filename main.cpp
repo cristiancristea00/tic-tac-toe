@@ -1,9 +1,12 @@
 #include <pico/binary_info/code.h>
 #include <pico/stdlib.h>
+
+#include <memory>
+
 #include "Game.hpp"
 #include "Keypad.hpp"
 
-int main()
+auto main() -> int
 {
     constexpr auto I2C = PICO_DEFAULT_I2C_INSTANCE;
     constexpr auto SDA = PICO_DEFAULT_I2C_SDA_PIN;
@@ -27,12 +30,12 @@ int main()
     bi_decl(bi_1pin_with_name(COLUMNS[2], "[C3] Keypad third column pin"))
     bi_decl(bi_1pin_with_name(COLUMNS[3], "[C4] Keypad fourth column pin"))
 
-    auto display = new LCD_I2C(0x27, 20, 4, I2C, SDA, SCL);
-    auto scoreboard = new TM1637(DIO, CLK, pio);
-    auto keypad = new Keypad(ROWS, COLUMNS);
-
     stdio_init_all();
 
-    auto game = new Game(display, scoreboard, keypad);
+    auto game = std::make_unique<Game>(
+            new LCD_I2C {0x27, 20, 4, I2C, SDA, SCL},
+            new TM1637 {DIO, CLK, pio},
+            new Keypad {ROWS, COLUMNS});
     game->Play();
 }
+

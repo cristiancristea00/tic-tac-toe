@@ -14,11 +14,14 @@
 
 #include <string_view>
 #include <cstdint>
+#include <array>
+
 
 class LCD_I2C
 {
  public:
     using byte = uint8_t;
+    static constexpr size_t CUSTOM_SYMBOL_SIZE = 8;
 
  private:
 
@@ -280,6 +283,6 @@ class LCD_I2C
      * @param location The memory address
      * @param char_map The byte array
      */
-    void CreateCustomChar(byte location, byte const * char_map) const noexcept;
+    void CreateCustomChar(byte location, std::array<byte, CUSTOM_SYMBOL_SIZE> char_map) const noexcept;
 };
 

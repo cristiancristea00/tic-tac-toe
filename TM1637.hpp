@@ -20,7 +20,7 @@ class TM1637
 {
  public:
     using byte = uint8_t;
-    using value = uint32_t;
+    using data = uint32_t;
 
  private:
 
@@ -31,11 +31,11 @@ class TM1637
     static constexpr byte WRITE_MODE = 0x40;
     static constexpr byte WRITE_ADDRESS = 0xC0;
 
-    static constexpr byte DIGIT_TO_SEGMENTS[] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F};
+    static constexpr std::array DIGIT_TO_SEGMENTS {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F};
 
     bool is_colon {};
     byte brightness {};
-    value current_segments {};
+    data current_segments {};
 
     PIO pio {};
     byte state_machine {};
@@ -52,14 +52,14 @@ class TM1637
     /**
      * Sets up the state machine's clock divider.
      */
-    inline void Set_Clock_Divider() const noexcept;
+    inline void Set_Clock_Divider() noexcept;
 
     /**
-     * Send four bytes of data to the state machine.
+     * Send four bytes of value to the state machine.
      *
-     * @param data The 4 bytes value to be sent
+     * @param value The 4 bytes data to be sent
      */
-    void Send_4_Bytes(value data) const noexcept;
+    void Send_4_Bytes(data value) const noexcept;
 
     /**
      * Converts a number to the bytes corresponding to the segments on the
@@ -69,18 +69,18 @@ class TM1637
      *
      * @param number The number to be converted
      * @param bitmask The optional bitmask
-     * @return The value that correspond to the lit up segments
+     * @return The data that correspond to the lit up segments
      */
-    static value Number_To_Segments(value number, value bitmask = 0) noexcept;
+    static auto Number_To_Segments(data number, data bitmask = 0) noexcept -> data;
 
     /**
      * Helper for getting the segments representation for a two digit number.
      *
      * @param number The number to be converted
      * @param leading_zeros Optional leading zeros
-     * @return The value that correspond to the lit up segments
+     * @return The data that correspond to the lit up segments
      */
-    static unsigned long Two_Digits_To_Segment(value number, bool leading_zeros = false) noexcept;
+    static auto Two_Digits_To_Segment(data number, bool leading_zeros = false) noexcept -> data;
 
  public:
 
@@ -115,7 +115,7 @@ class TM1637
      * @param number The number to be displayed
      * @param leading_zeros Optional leading zeros
      */
-    void DisplayLeft(value number, bool leading_zeros = false) noexcept;
+    void DisplayLeft(data number, bool leading_zeros = false) noexcept;
 
     /**
      * Display a number on the least significant two digits.
@@ -123,7 +123,7 @@ class TM1637
      * @param number The number to be displayed
      * @param leading_zeros Optional leading zeros
      */
-    void DisplayRight(value number, bool leading_zeros = false) noexcept;
+    void DisplayRight(data number, bool leading_zeros = false) noexcept;
 
     /**
      * Turns on the middle colon.

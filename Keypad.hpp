@@ -29,10 +29,10 @@ class Keypad
  private:
     using byte = uint8_t;
 
-    static constexpr byte MAX_SIZE = 4;
+    static constexpr byte KEYPAD_SIZE = 4;
 
  public:
-    using array = std::array<byte, MAX_SIZE>;
+    using array = std::array<byte, KEYPAD_SIZE>;
 
  private:
     static constexpr bool LOW = false;
@@ -41,15 +41,39 @@ class Keypad
     array rows;
     array columns;
 
-    static constexpr Key KEYS[MAX_SIZE][MAX_SIZE] = {{Key::KEY1, Key::KEY2, Key::KEY3, Key::KEY4},
-                                                     {Key::KEY5, Key::KEY6, Key::KEY7, Key::KEY8},
-                                                     {Key::KEY9, Key::KEY10, Key::KEY11, Key::KEY12},
-                                                     {Key::KEY13, Key::KEY14, Key::KEY15, Key::KEY16}};
+    static constexpr std::array<std::array<Key, KEYPAD_SIZE>, KEYPAD_SIZE>
+            KEYS {{{Key::KEY1, Key::KEY2, Key::KEY3, Key::KEY4},
+                   {Key::KEY5, Key::KEY6, Key::KEY7, Key::KEY8},
+                   {Key::KEY9, Key::KEY10, Key::KEY11, Key::KEY12},
+                   {Key::KEY13, Key::KEY14, Key::KEY15, Key::KEY16}}};
 
+    /**
+     * TODO
+     */
     inline void Init() noexcept;
 
+    /**
+     * TODO
+     *
+     * @return
+     */
+    [[nodiscard]] auto Poll_Keys() const noexcept -> Key;
+
  public:
+
+    /**
+     * TODO
+     *
+     * @param rows
+     * @param columns
+     */
     Keypad(array const & rows, array const & columns) noexcept;
-    [[nodiscard]] Key Poll() const noexcept;
+
+    /**
+     * TODO
+     *
+     * @return
+     */
+    [[nodiscard]] auto GetPressedKey() const noexcept -> Key;
 };
 
