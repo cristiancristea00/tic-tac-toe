@@ -22,10 +22,21 @@ Game::Game(LCD_I2C * lcd, TM1637 * led_segments, Keypad * keypad) noexcept
                              {0x00, 0x0E, 0x11, 0x11, 0x11, 0x11, 0x0E, 0x00}, /* 0 */
                              {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}  /* ' ' */}};
 
+    # pragma GCC unroll 6
     for (size_t location = 0; location < NO_CUSTOM_SYMBOLS; ++location)
     {
         lcd->CreateCustomChar(location, CUSTOM_SYMBOLS.at(location));
     }
+
+    Init_Second_Core();
+}
+
+void Game::Init_Second_Core() const noexcept
+{
+    multicore_launch_core1(Backlight_And_Reset_Runner);
+    multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(keypad.get()));
+    multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(lcd.get()));
+    multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(this));
 }
 
 inline auto Game::Board_State_From_Player(Player player) noexcept -> Game::BoardState
@@ -41,25 +52,8 @@ inline auto Game::Board_State_From_Player(Player player) noexcept -> Game::Board
     return BoardState::UNKNOWN;
 }
 
-inline auto Game::Char_From_Board_State(BoardState board_state) noexcept -> char
-{
-    switch (board_state)
-    {
-        case BoardState::X:
-            return 'X';
-        case BoardState::O:
-            return '0';
-        default:
-            return ' ';
-    }
-}
-
 auto Game::LCD_Char_Location_From_Board_State(BoardState board_state) noexcept -> LCD_I2C::byte
 {
-    static constexpr LCD_I2C::byte LOCATION_X = 3;
-    static constexpr LCD_I2C::byte LOCATION_0 = 4;
-    static constexpr LCD_I2C::byte LOCATION_SPACE = 5;
-
     switch (board_state)
     {
         case BoardState::X:
@@ -204,39 +198,39 @@ inline auto Game::Get_Result_Board(Board const & current_board,
 
 inline void Game::Draw_Game() const noexcept
 {
+    static constexpr LCD_I2C::byte FIRST_COLUMN = 0;
+    static constexpr LCD_I2C::byte SECOND_COLUMN = 2;
+    static constexpr LCD_I2C::byte THIRD_COLUMN = 4;
+    static constexpr LCD_I2C::byte FOURTH_COLUMN = 6;
+
     #pragma GCC unroll 3
     for (size_t row = 0; row < BOARD_SIZE; ++row)
     {
-        lcd->SetCursor(row, 0);
-        lcd->PrintCustomChar(0);
-        lcd->SetCursor(row, 2);
-        lcd->PrintCustomChar(1);
-        lcd->SetCursor(row, 4);
-        lcd->PrintCustomChar(1);
-        lcd->SetCursor(row, 6);
-        lcd->PrintCustomChar(2);
+        lcd->SetCursor(row, FIRST_COLUMN);
+        lcd->PrintCustomChar(LOCATION_LEFT);
+        lcd->SetCursor(row, SECOND_COLUMN);
+        lcd->PrintCustomChar(LOCATION_CENTER);
+        lcd->SetCursor(row, THIRD_COLUMN);
+        lcd->PrintCustomChar(LOCATION_CENTER);
+        lcd->SetCursor(row, FOURTH_COLUMN);
+        lcd->PrintCustomChar(LOCATION_RIGHT);
     }
 }
 
 void Game::Draw_Board_State() const noexcept
 {
-    static constexpr std::string_view HORIZONTAL_SEPARATOR = "-------------\n";
-    static constexpr std::string_view GRID_FORMAT = "| %c | %c | %c |\n";
+    static constexpr LCD_I2C::byte FIRST_COLUMN = 1;
+    static constexpr LCD_I2C::byte SECOND_COLUMN = 3;
+    static constexpr LCD_I2C::byte THIRD_COLUMN = 5;
 
-    printf("%s", HORIZONTAL_SEPARATOR.data());
     #pragma GCC unroll 3
     for (size_t row = 0; row < BOARD_SIZE; ++row)
     {
-        printf(GRID_FORMAT.data(), Char_From_Board_State(game_board[row][0]),
-               Char_From_Board_State(game_board[row][1]),
-               Char_From_Board_State(game_board[row][2]));
-        printf("%s", HORIZONTAL_SEPARATOR.data());
-
-        lcd->SetCursor(row, 1);
+        lcd->SetCursor(row, FIRST_COLUMN);
         lcd->PrintCustomChar(LCD_Char_Location_From_Board_State(game_board[row][0]));
-        lcd->SetCursor(row, 3);
+        lcd->SetCursor(row, SECOND_COLUMN);
         lcd->PrintCustomChar(LCD_Char_Location_From_Board_State(game_board[row][1]));
-        lcd->SetCursor(row, 5);
+        lcd->SetCursor(row, THIRD_COLUMN);
         lcd->PrintCustomChar(LCD_Char_Location_From_Board_State(game_board[row][2]));
     }
 }
@@ -335,9 +329,9 @@ auto Game::Get_User() const noexcept -> Game::Player
     lcd->SetCursor(0, 10);
     lcd->PrintString("Choose ");
     lcd->SetCursor(1, 10);
-    lcd->PrintCustomChar(3);
+    lcd->PrintCustomChar(LOCATION_X);
     lcd->PrintString(" or ");
-    lcd->PrintCustomChar(4);
+    lcd->PrintCustomChar(LOCATION_0);
 
     do
     {
@@ -346,6 +340,30 @@ auto Game::Get_User() const noexcept -> Game::Player
     while (choice == PLAYER_UNKNOWN);
 
     return choice;
+}
+
+[[noreturn]] void Game::Backlight_And_Reset_Runner() noexcept
+{
+    static bool light_on = true;
+    static Key key {};
+
+    auto * keypad = reinterpret_cast<Keypad *> (multicore_fifo_pop_blocking());
+    auto * lcd = reinterpret_cast<LCD_I2C *>(multicore_fifo_pop_blocking());
+    auto * game = reinterpret_cast<Game *>(multicore_fifo_pop_blocking());
+
+    while (true)
+    {
+        key = keypad->GetPressedKey();
+        if (key == Key::KEY14)
+        {
+            light_on = !light_on;
+            lcd->SetBacklight(light_on);
+        }
+        else if (key == Key::KEY13)
+        {
+            game->Reset_Scoreboard();
+        }
+    }
 }
 
 void Game::Update_Scoreboard() const noexcept
@@ -363,6 +381,13 @@ void Game::Increase_X_Score() noexcept
 void Game::Increase_0_Score() noexcept
 {
     ++score_0;
+    Update_Scoreboard();
+}
+
+void Game::Reset_Scoreboard() noexcept
+{
+    score_X = 0;
+    score_0 = 0;
     Update_Scoreboard();
 }
 
@@ -441,9 +466,12 @@ Game::IGameStrategy::IGameStrategy() noexcept : random_number_generator(Get_Rand
 
 inline auto Game::IGameStrategy::Get_Random_Seed() noexcept -> uint32_t
 {
-    uint32_t random = 0x811C9DC5;
+    static constexpr uint32_t FNV_OFFSET_BASIS = 0x811C9DC5;
+    static constexpr uint32_t FNV_PRIME = 0x01000193;
+
+    uint32_t random = FNV_OFFSET_BASIS;
     uint8_t next_byte = 0;
-    auto volatile rnd_reg = reinterpret_cast<uint32_t *>(ROSC_BASE + ROSC_RANDOMBIT_OFFSET);
+    auto * volatile rnd_reg = reinterpret_cast<uint32_t *>(ROSC_BASE + ROSC_RANDOMBIT_OFFSET);
 
     for (size_t i = 0; i < 16; i++)
     {
@@ -452,12 +480,12 @@ inline auto Game::IGameStrategy::Get_Random_Seed() noexcept -> uint32_t
             next_byte = (next_byte << 1U) | (*rnd_reg & 1U);
         }
         random ^= next_byte;
-        random *= 0x01000193;
+        random *= FNV_PRIME;
     }
     return random;
 }
 
-auto Game::IGameStrategy::GetRandomNumberGenerator() noexcept -> std::mt19937 &
+auto Game::IGameStrategy::GetRNG() noexcept -> std::mt19937 &
 {
     return random_number_generator;
 }
@@ -471,7 +499,7 @@ auto Game::EasyStrategy::GetNextMove(Board const & current_board) noexcept -> Ac
 
     auto actions = Get_Actions(current_board);
 
-    std::sample(actions.begin(), actions.end(), std::back_inserter(actions), 1, GetRandomNumberGenerator());
+    std::sample(actions.begin(), actions.end(), std::back_inserter(actions), 1, GetRNG());
     return actions.back();
 }
 
@@ -493,13 +521,12 @@ auto Game::MediumStrategy::GetNextMove(Board const & current_board) noexcept -> 
         }
     }
 
-    std::sample(actions.begin(), actions.end(), std::back_inserter(actions), 1, GetRandomNumberGenerator());
+    std::sample(actions.begin(), actions.end(), std::back_inserter(actions), 1, GetRNG());
     return actions.back();
 }
 
-auto Game::ImpossibleStrategy::Get_Min_Value(Board const & current_board,
-                                             Value alpha,
-                                             Value beta) const noexcept -> Game::Value
+auto Game::ImpossibleStrategy::Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept
+-> Game::Value
 {
     if (Is_Terminal(current_board))
     {
@@ -522,9 +549,8 @@ auto Game::ImpossibleStrategy::Get_Min_Value(Board const & current_board,
     return value;
 }
 
-auto Game::ImpossibleStrategy::Get_Max_Value(Board const & current_board,
-                                             Value alpha,
-                                             Value beta) const noexcept -> Game::Value
+auto Game::ImpossibleStrategy::Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept
+-> Game::Value
 {
     if (Is_Terminal(current_board))
     {
@@ -547,13 +573,9 @@ auto Game::ImpossibleStrategy::Get_Max_Value(Board const & current_board,
     return value;
 }
 
-auto Game::ImpossibleStrategy::GetNextMove(Board const & current_board) noexcept -> Action
+auto Game::ImpossibleStrategy::Get_Possible_Moves(Game::Board const & current_board) const
+-> std::unordered_map<Action, Game::Value, Action::Hash>
 {
-    if (Is_Terminal(current_board))
-    {
-        return {};
-    }
-
     auto actions = Get_Actions(current_board);
 
     std::unordered_map<Action, Value, Action::Hash> possible_moves;
@@ -607,6 +629,19 @@ auto Game::ImpossibleStrategy::GetNextMove(Board const & current_board) noexcept
             }
         }
     }
+
+    return possible_moves;
+}
+
+auto Game::ImpossibleStrategy::GetNextMove(Board const & current_board) noexcept -> Action
+{
+    if (Is_Terminal(current_board))
+    {
+        return {};
+    }
+
+    auto possible_moves = Get_Possible_Moves(current_board);
+
     std::vector<std::pair<Action, Value>> result {possible_moves.begin(), possible_moves.end()};
     for (auto const &[ACTION, VALUE]: result)
     {
@@ -616,6 +651,6 @@ auto Game::ImpossibleStrategy::GetNextMove(Board const & current_board) noexcept
             return ACTION;
         }
     }
-    std::sample(result.begin(), result.end(), std::back_inserter(result), 1, GetRandomNumberGenerator());
+    std::sample(result.begin(), result.end(), std::back_inserter(result), 1, GetRNG());
     return result.back().first;
 }

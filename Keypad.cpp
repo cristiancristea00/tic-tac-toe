@@ -9,7 +9,8 @@
 
 #include "Keypad.hpp"
 
-Keypad::Keypad(array const & rows, array const & columns) noexcept : rows(rows), columns(columns)
+Keypad::Keypad(array const & rows, array const & columns) noexcept
+        : rows(rows), columns(columns)
 {
     std::for_each(columns.begin(), columns.end(), gpio_init);
     std::for_each(rows.begin(), rows.end(), gpio_init);
@@ -30,7 +31,7 @@ inline void Keypad::Init() noexcept
 auto Keypad::Poll_Keys() const noexcept -> Key
 {
     static auto last_debounce_time = to_ms_since_boot(get_absolute_time());
-    static constexpr auto DELAY_TIME = 100;
+    static constexpr auto DELAY_TIME = 10;
 
     if ((to_ms_since_boot(get_absolute_time()) - last_debounce_time) > DELAY_TIME)
     {

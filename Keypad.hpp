@@ -24,7 +24,7 @@ enum class Key
     UNKOWN
 };
 
-class Keypad
+class Keypad final
 {
  private:
     using byte = uint8_t;

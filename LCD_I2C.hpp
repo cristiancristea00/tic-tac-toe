@@ -16,8 +16,7 @@
 #include <cstdint>
 #include <array>
 
-
-class LCD_I2C
+class LCD_I2C final
 {
  public:
     using byte = uint8_t;
@@ -180,6 +179,13 @@ class LCD_I2C
      * Turns the backlight off.
      */
     void BacklightOff() noexcept;
+
+    /**
+     * Sets the backlight light_on/off according to the parameter.
+     *
+     * @param light_on True for light_on and False for off
+     */
+    void SetBacklight(bool light_on) noexcept;
 
     /**
      * Turns the cursor on.

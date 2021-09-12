@@ -27,7 +27,7 @@ pico_enable_stdio_uart(tic-tac-toe 1)
 pico_enable_stdio_usb(tic-tac-toe 0)
 
 # Add the libraries to the build
-target_link_libraries(tic-tac-toe pico_stdlib hardware_i2c hardware_pio)
+target_link_libraries(tic-tac-toe pico_stdlib pico_multicore hardware_i2c hardware_pio)
 
 pico_add_extra_outputs(tic-tac-toe)
 

@@ -13,7 +13,8 @@
 LCD_I2C::LCD_I2C(byte address, byte columns, byte rows, i2c_inst * I2C, uint SDA, uint SCL) noexcept
         : address(address), columns(columns), rows(rows), backlight(NO_BACKLIGHT), I2C_instance(I2C)
 {
-    i2c_init(I2C, 100'000);
+    static constexpr size_t BAUD_RATE = 100'000;
+    i2c_init(I2C, BAUD_RATE);
     gpio_set_function(SDA, GPIO_FUNC_I2C);
     gpio_set_function(SCL, GPIO_FUNC_I2C);
     gpio_pull_up(SDA);
@@ -115,6 +116,18 @@ void LCD_I2C::BacklightOff() noexcept
     I2C_Write_Byte(backlight);
 }
 
+void LCD_I2C::SetBacklight(bool light_on) noexcept
+{
+    if (light_on)
+    {
+        BacklightOn();
+    }
+    else
+    {
+        BacklightOff();
+    }
+}
+
 void LCD_I2C::CursorOn() noexcept
 {
     display_control |= CURSOR_ON;
@@ -185,8 +198,8 @@ void LCD_I2C::Home() const noexcept
 
 void LCD_I2C::SetCursor(byte row, byte column) const noexcept
 {
-    static constexpr byte ROW_OFFSETS[] = {0x00, 0x40, 0x14, 0x54};
-    Send_Command(SET_DDRAM_ADDR | (ROW_OFFSETS[row] + column));
+    static constexpr std::array ROW_OFFSETS = {0x00, 0x40, 0x14, 0x54};
+    Send_Command(SET_DDRAM_ADDR | (ROW_OFFSETS.at(row) + column));
 }
 
 void LCD_I2C::PrintChar(byte character) const noexcept
@@ -196,7 +209,7 @@ void LCD_I2C::PrintChar(byte character) const noexcept
 
 void LCD_I2C::PrintString(std::string_view str) const noexcept
 {
-    for (char const CHARACTER : str)
+    for (char const CHARACTER: str)
     {
         PrintChar(CHARACTER);
     }
@@ -209,10 +222,9 @@ void LCD_I2C::PrintCustomChar(byte location) const noexcept
 
 void LCD_I2C::CreateCustomChar(byte location, std::array<byte, CUSTOM_SYMBOL_SIZE> char_map) const noexcept
 {
-    location &= 0x7;
     Send_Command(SET_CGRAM_ADDR | (location << 3));
     for (size_t i = 0; i < CUSTOM_SYMBOL_SIZE; ++i)
     {
-        Send_Register_Select(char_map[i]);
+        Send_Register_Select(char_map.at(i));
     }
 }

@@ -10,6 +10,7 @@
 #pragma once
 
 #include <hardware/regs/rosc.h>
+#include <pico/multicore.h>
 
 #include "LCD_I2C.hpp"
 #include "Action.hpp"
@@ -24,14 +25,14 @@
 #include <vector>
 #include <array>
 
-class Game
+class Game final
 {
  private:
 
     /**
      * Representation of game symbols
      */
-    enum class BoardState
+    enum class BoardState : uint8_t
     {
         EMPTY,
         X,
@@ -48,6 +49,13 @@ class Game
     static constexpr Player PLAYER_X = 'X';
     static constexpr Player PLAYER_0 = '0';
     static constexpr Player PLAYER_UNKNOWN = 'U';
+
+    static constexpr LCD_I2C::byte LOCATION_LEFT = 0;
+    static constexpr LCD_I2C::byte LOCATION_CENTER = 1;
+    static constexpr LCD_I2C::byte LOCATION_RIGHT = 2;
+    static constexpr LCD_I2C::byte LOCATION_X = 3;
+    static constexpr LCD_I2C::byte LOCATION_0 = 4;
+    static constexpr LCD_I2C::byte LOCATION_SPACE = 5;
 
     /**
      * Replacement for +INFINITY
@@ -70,20 +78,17 @@ class Game
     std::unique_ptr<Keypad> keypad;
 
     /**
+     * TODO
+     */
+    void Init_Second_Core() const noexcept;
+
+    /**
      * Converts the player type to a board piece.
      *
      * @param player The player to be converted
      * @return The resulting piece
      */
     inline static auto Board_State_From_Player(Player player) noexcept -> BoardState;
-
-    /**
-     * Converts the board piece to a character, used for debug printing.
-     *
-     * @param board_state The piece to be converted
-     * @return The resulting character
-     */
-    inline static auto Char_From_Board_State(BoardState board_state) noexcept -> char;
 
     /**
      * Converts the board piece to a LCD screen custom character memory
@@ -208,6 +213,11 @@ class Game
 
     /**
      * TODO
+     */
+    void Reset_Scoreboard() noexcept;
+
+    /**
+     * TODO
      *
      * @param key
      * @return
@@ -233,6 +243,11 @@ class Game
      * @return
      */
     [[nodiscard]] auto Get_User() const noexcept -> Player;
+
+    /**
+     * TODO
+     */
+    [[noreturn]] static void Backlight_And_Reset_Runner() noexcept;
 
  public:
 
@@ -278,7 +293,7 @@ class Game
          *
          * @return
          */
-        auto GetRandomNumberGenerator() noexcept -> std::mt19937 &;
+        auto GetRNG() noexcept -> std::mt19937 &;
 
         /**
          * Selects a move according to the current board configuration.
@@ -426,6 +441,15 @@ class Game
          * @return The maximum data
          */
         [[nodiscard]] auto Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept -> Value;
+
+        /**
+         * TODO
+         *
+         * @param current_board
+         * @return
+         */
+        [[nodiscard]] auto Get_Possible_Moves(Board const & current_board) const
+        -> std::unordered_map<Action, Value, Action::Hash>;
 
      public:
 
