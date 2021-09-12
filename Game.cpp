@@ -170,8 +170,9 @@ inline auto Game::Is_Terminal(Board const & current_board) noexcept -> bool
 
 inline auto Game::Is_Valid_Action(Board const & current_board, Action const & action) noexcept -> bool
 {
-    return action.row >= 0 && action.column >= 0 && action.row < BOARD_SIZE && action.column < BOARD_SIZE
-            && current_board[action.row][action.column] == BoardState::EMPTY;
+    return action.GetRow() >= 0 && action.GetColumn() >= 0 && action.GetRow() < BOARD_SIZE
+            && action.GetColumn() < BOARD_SIZE
+            && current_board[action.GetRow()][action.GetColumn()] == BoardState::EMPTY;
 }
 
 inline auto Game::Get_Board_Value(Board const & current_board) noexcept -> Game::Value
@@ -192,7 +193,7 @@ inline auto Game::Get_Result_Board(Board const & current_board,
                                    Player player) noexcept -> Game::Board
 {
     auto action_board = current_board;
-    action_board.at(action.row).at(action.column) = Board_State_From_Player(player);
+    action_board.at(action.GetRow()).at(action.GetColumn()) = Board_State_From_Player(player);
     return action_board;
 }
 
@@ -217,7 +218,7 @@ inline void Game::Draw_Game() const noexcept
     }
 }
 
-void Game::Draw_Board_State() const noexcept
+inline void Game::Draw_Board_State() const noexcept
 {
     static constexpr LCD_I2C::byte FIRST_COLUMN = 1;
     static constexpr LCD_I2C::byte SECOND_COLUMN = 3;
@@ -235,19 +236,21 @@ void Game::Draw_Board_State() const noexcept
     }
 }
 
-void Game::Print_Winner_Update_Score(Player winner) noexcept
+inline void Game::Print_Winner_And_Update_Score(Player winner) noexcept
 {
-    lcd->SetCursor(0, 8);
+    static constexpr size_t AFTER_WIN_DELAY = 5000;
+
+    lcd->SetCursor(0, TEXT_START_COLUMN);
     lcd->PrintString("GAME OVER  ");
 
     if (winner == PLAYER_UNKNOWN)
     {
-        lcd->SetCursor(1, 8);
+        lcd->SetCursor(1, TEXT_START_COLUMN);
         lcd->PrintString("   TIE     ");
     }
     else
     {
-        lcd->SetCursor(1, 8);
+        lcd->SetCursor(1, TEXT_START_COLUMN);
         lcd->PrintString("  ");
         if (winner == PLAYER_X)
         {
@@ -262,14 +265,14 @@ void Game::Print_Winner_Update_Score(Player winner) noexcept
         lcd->PrintString(" WINS   ");
     }
 
-    sleep_ms(5000);
+    sleep_ms(AFTER_WIN_DELAY);
 }
 
-void Game::Print_User_Info(Player current_player) const noexcept
+inline void Game::Print_User_Info(Player current_player) const noexcept
 {
-    lcd->SetCursor(0, 9);
-    lcd->PrintString("Your turn");
-    lcd->SetCursor(1, 8);
+    lcd->SetCursor(0, TEXT_START_COLUMN);
+    lcd->PrintString(" Your turn");
+    lcd->SetCursor(1, TEXT_START_COLUMN);
     lcd->PrintString(" Play as ");
     if (current_player == PLAYER_X)
     {
@@ -282,15 +285,16 @@ void Game::Print_User_Info(Player current_player) const noexcept
     lcd->PrintCustomChar(LOCATION_SPACE);
 }
 
-void Game::Print_Computer_Info() const noexcept
+inline void Game::Print_Computer_Info() const noexcept
 {
+    static constexpr size_t DOTS_START_COLUMN = 16;
     static constexpr size_t DELAY = 200;
 
-    lcd->SetCursor(0, 9);
-    lcd->PrintString(" Computer");
-    lcd->SetCursor(1, 8);
+    lcd->SetCursor(0, TEXT_START_COLUMN);
+    lcd->PrintString("  Computer");
+    lcd->SetCursor(1, TEXT_START_COLUMN);
     lcd->PrintString("thinking   ");
-    lcd->SetCursor(1, 16);
+    lcd->SetCursor(1, DOTS_START_COLUMN);
     sleep_ms(DELAY);
     lcd->PrintString(".");
     sleep_ms(DELAY);
@@ -322,7 +326,7 @@ void Game::Internal_Play() noexcept
 
             if (game_over)
             {
-                Print_Winner_Update_Score(Get_Winner(game_board));
+                Print_Winner_And_Update_Score(Get_Winner(game_board));
                 Reset_Board();
                 Draw_Board_State();
                 break;
@@ -364,11 +368,11 @@ void Game::Internal_Play() noexcept
     }
 }
 
-void Game::Choose_Difficulty() noexcept
+inline void Game::Choose_Difficulty() noexcept
 {
-    lcd->SetCursor(0, 8);
+    lcd->SetCursor(0, TEXT_START_COLUMN);
     lcd->PrintString("  Choose  ");
-    lcd->SetCursor(1, 8);
+    lcd->SetCursor(1, TEXT_START_COLUMN);
     lcd->PrintString("difficulty ");
 
     do
@@ -378,13 +382,13 @@ void Game::Choose_Difficulty() noexcept
     while (game_strategy == nullptr);
 }
 
-auto Game::Get_User() const noexcept -> Game::Player
+inline auto Game::Get_User() const noexcept -> Game::Player
 {
     static Player choice;
 
-    lcd->SetCursor(0, 10);
-    lcd->PrintString("Choose");
-    lcd->SetCursor(1, 8);
+    lcd->SetCursor(0, TEXT_START_COLUMN);
+    lcd->PrintString("  Choose");
+    lcd->SetCursor(1, TEXT_START_COLUMN);
     lcd->PrintString("  ");
     lcd->PrintCustomChar(LOCATION_X);
     lcd->PrintString(" or ");
@@ -400,7 +404,7 @@ auto Game::Get_User() const noexcept -> Game::Player
     return choice;
 }
 
-[[noreturn]] void Game::Backlight_And_Reset_Runner() noexcept
+void Game::Backlight_And_Reset_Runner() noexcept
 {
     static bool light_on {false};
     static Key key {};
@@ -424,25 +428,25 @@ auto Game::Get_User() const noexcept -> Game::Player
     }
 }
 
-void Game::Update_Scoreboard() const noexcept
+inline void Game::Update_Scoreboard() const noexcept
 {
     led_segments->DisplayLeft(score_X, true);
     led_segments->DisplayRight(score_0, true);
 }
 
-void Game::Increase_X_Score() noexcept
+inline void Game::Increase_X_Score() noexcept
 {
     ++score_X;
     Update_Scoreboard();
 }
 
-void Game::Increase_0_Score() noexcept
+inline void Game::Increase_0_Score() noexcept
 {
     ++score_0;
     Update_Scoreboard();
 }
 
-void Game::Reset_Scoreboard() noexcept
+inline void Game::Reset_Scoreboard() noexcept
 {
     score_X = 0;
     score_0 = 0;
@@ -524,16 +528,18 @@ inline auto Game::IGameStrategy::Get_Random_Seed() noexcept -> uint32_t
 {
     static constexpr uint32_t FNV_OFFSET_BASIS = 0x811C9DC5;
     static constexpr uint32_t FNV_PRIME = 0x01000193;
+    static constexpr size_t NO_OF_ROUNDS = 16;
+    static constexpr size_t NO_OF_BYTES = 8;
 
     uint32_t random = FNV_OFFSET_BASIS;
     uint8_t next_byte = 0;
     auto * volatile rnd_reg = reinterpret_cast<uint32_t *>(ROSC_BASE + ROSC_RANDOMBIT_OFFSET);
 
-    for (size_t i = 0; i < 16; i++)
+    for (size_t i = 0; i < NO_OF_ROUNDS; i++)
     {
-        for (size_t k = 0; k < 8; k++)
+        for (size_t k = 0; k < NO_OF_BYTES; k++)
         {
-            next_byte = (next_byte << 1U) | (*rnd_reg & 1U);
+            next_byte = (next_byte << 1) | (*rnd_reg & 1);
         }
         random ^= next_byte;
         random *= FNV_PRIME;

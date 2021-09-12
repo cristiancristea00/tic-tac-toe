@@ -13,8 +13,8 @@ pico_sdk_init()
 project(tic-tac-toe C CXX ASM)
 
 # Add executable
-add_executable(tic-tac-toe main.cpp Game.cpp Game.hpp Action.cpp Action.hpp LCD_I2C.cpp LCD_I2C.hpp
-        TM1637.cpp TM1637.hpp Keypad.cpp Keypad.hpp)
+add_executable(tic-tac-toe main.cpp Game.cpp Action.cpp LCD_I2C.cpp TM1637.cpp Keypad.cpp)
+include_directories(${CMAKE_CURRENT_LIST_DIR})
 pico_generate_pio_header(tic-tac-toe ${CMAKE_CURRENT_LIST_DIR}/TM1637.pio)
 
 pico_set_program_name(tic-tac-toe "Tic Tac Toe LCD Game")

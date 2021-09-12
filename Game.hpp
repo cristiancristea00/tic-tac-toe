@@ -57,6 +57,8 @@ class Game final
     static constexpr LCD_I2C::byte LOCATION_0 = 4;
     static constexpr LCD_I2C::byte LOCATION_SPACE = 5;
 
+    static constexpr LCD_I2C::byte TEXT_START_COLUMN = 8;
+
     /**
      * Replacement for +INFINITY
      */
@@ -188,26 +190,26 @@ class Game final
     /**
      * Draws on the LCD the current board configuration.
      */
-    void Draw_Board_State() const noexcept;
+    inline void Draw_Board_State() const noexcept;
 
     /**
      * TODO
      *
      * @param winner
      */
-    void Print_Winner_Update_Score(Player winner) noexcept;
+    inline void Print_Winner_And_Update_Score(Player winner) noexcept;
 
     /**
      * TODO
      *
      * @param current_player
      */
-    void Print_User_Info(Player current_player) const noexcept;
+    inline void Print_User_Info(Player current_player) const noexcept;
 
     /**
      * TODO
      */
-    void Print_Computer_Info() const noexcept;
+    inline void Print_Computer_Info() const noexcept;
 
     /**
      * Main game logic
@@ -217,22 +219,22 @@ class Game final
     /**
      * Refreshes the led display to display the score changes.
      */
-    void Update_Scoreboard() const noexcept;
+    inline void Update_Scoreboard() const noexcept;
 
     /**
      * Increases the X player scores and updates the display.
      */
-    void Increase_X_Score() noexcept;
+    inline void Increase_X_Score() noexcept;
 
     /**
      * Increases the 0 player scores and updates the display.
      */
-    void Increase_0_Score() noexcept;
+    inline void Increase_0_Score() noexcept;
 
     /**
      * TODO
      */
-    void Reset_Scoreboard() noexcept;
+    inline void Reset_Scoreboard() noexcept;
 
     /**
      * TODO
@@ -253,14 +255,14 @@ class Game final
     /**
      * Chooses the game difficulty
      */
-    void Choose_Difficulty() noexcept;
+    inline void Choose_Difficulty() noexcept;
 
     /**
      * TODO
      *
      * @return
      */
-    [[nodiscard]] auto Get_User() const noexcept -> Player;
+    [[nodiscard]] inline auto Get_User() const noexcept -> Player;
 
     /**
      * TODO

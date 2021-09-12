@@ -57,12 +57,12 @@ class Keypad final
      *
      * @return
      */
-    [[nodiscard]] auto Poll_Keys() const noexcept -> Key;
+    [[nodiscard]] __attribute__((optimize("O0"))) auto Poll_Keys() const noexcept -> Key;
 
  public:
 
     /**
-     * TODO
+     * TOD
      *
      * @param rows
      * @param columns

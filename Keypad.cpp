@@ -27,7 +27,6 @@ inline void Keypad::Init() noexcept
     std::reverse(columns.begin(), columns.end());
 }
 
-[[nodiscard]] __attribute__((optimize("O0")))
 auto Keypad::Poll_Keys() const noexcept -> Key
 {
     static auto last_debounce_time = to_ms_since_boot(get_absolute_time());
@@ -55,7 +54,7 @@ auto Keypad::Poll_Keys() const noexcept -> Key
     return Key::UNKOWN;
 }
 
-[[nodiscard]] auto Keypad::GetPressedKey() const noexcept -> Key
+auto Keypad::GetPressedKey() const noexcept -> Key
 {
     Key key {};
 

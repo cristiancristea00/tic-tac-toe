@@ -30,6 +30,7 @@ class TM1637
     static constexpr byte BRIGHTNESS_BASE = 0x88;
     static constexpr byte WRITE_MODE = 0x40;
     static constexpr byte WRITE_ADDRESS = 0xC0;
+    static constexpr byte BASE_TEN = 10;
 
     static constexpr std::array DIGIT_TO_SEGMENTS {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F};
 

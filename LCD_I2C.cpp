@@ -7,13 +7,13 @@
  * @copyright Copyright (C) 2021 Cristian Cristea. All rights reserved.
  ******************************************************************************/
 
-#include <array>
 #include "LCD_I2C.hpp"
 
 LCD_I2C::LCD_I2C(byte address, byte columns, byte rows, i2c_inst * I2C, uint SDA, uint SCL) noexcept
         : address(address), columns(columns), rows(rows), backlight(NO_BACKLIGHT), I2C_instance(I2C)
 {
     static constexpr size_t BAUD_RATE = 100'000;
+
     i2c_init(I2C, BAUD_RATE);
     gpio_set_function(SDA, GPIO_FUNC_I2C);
     gpio_set_function(SCL, GPIO_FUNC_I2C);
@@ -49,11 +49,13 @@ inline void LCD_I2C::Send_Nibble(byte val) const noexcept
 
 inline void LCD_I2C::Send_Byte(byte val, byte mode) const noexcept
 {
+    static constexpr size_t UPPER_NIBBLE = 0B1111'0000;
+
     static byte high;
     static byte low;
 
-    high = val & 0xF0;
-    low = (val << 4) & 0xF0;
+    high = val & UPPER_NIBBLE;
+    low = (val << 4) & UPPER_NIBBLE;
 
     Send_Nibble(high | mode);
     Send_Nibble(low | mode);
@@ -199,6 +201,9 @@ void LCD_I2C::Home() const noexcept
 void LCD_I2C::SetCursor(byte row, byte column) const noexcept
 {
     static constexpr std::array ROW_OFFSETS = {0x00, 0x40, 0x14, 0x54};
+
+    row %= rows;
+    column %= columns;
     Send_Command(SET_DDRAM_ADDR | (ROW_OFFSETS.at(row) + column));
 }
 
@@ -222,6 +227,9 @@ void LCD_I2C::PrintCustomChar(byte location) const noexcept
 
 void LCD_I2C::CreateCustomChar(byte location, std::array<byte, CUSTOM_SYMBOL_SIZE> char_map) const noexcept
 {
+    static constexpr size_t MAX_CUSTOM_CHARS = 8;
+
+    location %= MAX_CUSTOM_CHARS;
     Send_Command(SET_CGRAM_ADDR | (location << 3));
     for (size_t i = 0; i < CUSTOM_SYMBOL_SIZE; ++i)
     {

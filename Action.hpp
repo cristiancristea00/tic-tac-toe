@@ -10,21 +10,55 @@
 #pragma once
 
 #include <cstdint>
-#include <tuple>
+#include <memory>
 
 class Action
 {
- public:
-    struct Hash
-    {
-        size_t operator()(Action const & action) const noexcept;
-    };
-
+ private:
     int8_t row {};
     int8_t column {};
 
+ public:
+
+    /**
+     * TODO
+     */
     Action() noexcept = default;
+
+    /**
+     * TODO
+     *
+     * @param row
+     * @param column
+     */
     Action(int8_t row, int8_t column) noexcept;
-    friend bool operator==(Action const & lhs, Action const & rhs) noexcept;
+
+    /**
+     * TODO
+     *
+     * @return
+     */
+    [[nodiscard]] auto GetRow() const noexcept -> int8_t;
+
+    /**
+     * TODO
+     *
+     * @return
+     */
+    [[nodiscard]] auto GetColumn() const noexcept -> int8_t;
+
+    /**
+     * TODO
+     *
+     * @param lhs
+     * @param rhs
+     * @return
+     */
+    friend auto operator==(Action const & lhs, Action const & rhs) noexcept -> bool;
+
+    struct Hash
+    {
+        auto operator()(Action const & action) const noexcept -> std::size_t;
+    };
 };
 
