@@ -235,6 +235,71 @@ void Game::Draw_Board_State() const noexcept
     }
 }
 
+void Game::Print_Winner_Update_Score(Player winner) noexcept
+{
+    lcd->SetCursor(0, 8);
+    lcd->PrintString("GAME OVER  ");
+
+    if (winner == PLAYER_UNKNOWN)
+    {
+        lcd->SetCursor(1, 8);
+        lcd->PrintString("   TIE     ");
+    }
+    else
+    {
+        lcd->SetCursor(1, 8);
+        lcd->PrintString("  ");
+        if (winner == PLAYER_X)
+        {
+            Increase_X_Score();
+            lcd->PrintCustomChar(LOCATION_X);
+        }
+        else
+        {
+            Increase_0_Score();
+            lcd->PrintCustomChar(LOCATION_0);
+        }
+        lcd->PrintString(" WINS   ");
+    }
+
+    sleep_ms(5000);
+}
+
+void Game::Print_User_Info(Player current_player) const noexcept
+{
+    lcd->SetCursor(0, 9);
+    lcd->PrintString("Your turn");
+    lcd->SetCursor(1, 8);
+    lcd->PrintString(" Play as ");
+    if (current_player == PLAYER_X)
+    {
+        lcd->PrintCustomChar(LOCATION_X);
+    }
+    else if (current_player == PLAYER_0)
+    {
+        lcd->PrintCustomChar(LOCATION_0);
+    }
+    lcd->PrintCustomChar(LOCATION_SPACE);
+}
+
+void Game::Print_Computer_Info() const noexcept
+{
+    static constexpr size_t DELAY = 200;
+
+    lcd->SetCursor(0, 9);
+    lcd->PrintString(" Computer");
+    lcd->SetCursor(1, 8);
+    lcd->PrintString("thinking   ");
+    lcd->SetCursor(1, 16);
+    sleep_ms(DELAY);
+    lcd->PrintString(".");
+    sleep_ms(DELAY);
+    lcd->PrintString(".");
+    sleep_ms(DELAY);
+    lcd->PrintString(".");
+    sleep_ms(DELAY);
+}
+
 void Game::Internal_Play() noexcept
 {
     Player user = PLAYER_UNKNOWN;
@@ -257,32 +322,18 @@ void Game::Internal_Play() noexcept
 
             if (game_over)
             {
-                Player winner = Get_Winner(game_board);
-                if (winner == PLAYER_UNKNOWN)
-                {
-                    printf("Game Over: TIE\n");
-                }
-                else
-                {
-                    printf("Game Over: %c wins\n", winner);
-                    if (winner == PLAYER_X)
-                    {
-                        Increase_X_Score();
-                    }
-                    else
-                    {
-                        Increase_0_Score();
-                    }
-                }
+                Print_Winner_Update_Score(Get_Winner(game_board));
+                Reset_Board();
+                Draw_Board_State();
                 break;
             }
             if (user == current_player)
             {
-                printf("Play as %c\n", user);
+                Print_User_Info(current_player);
             }
             else
             {
-                printf("Computer thinking...\n");
+                Print_Computer_Info();
             }
 
             if (user != current_player)
@@ -315,6 +366,11 @@ void Game::Internal_Play() noexcept
 
 void Game::Choose_Difficulty() noexcept
 {
+    lcd->SetCursor(0, 8);
+    lcd->PrintString("  Choose  ");
+    lcd->SetCursor(1, 8);
+    lcd->PrintString("difficulty ");
+
     do
     {
         game_strategy.reset(Difficulty_From_Key(keypad->GetPressedKey()));
@@ -327,11 +383,13 @@ auto Game::Get_User() const noexcept -> Game::Player
     static Player choice;
 
     lcd->SetCursor(0, 10);
-    lcd->PrintString("Choose ");
-    lcd->SetCursor(1, 10);
+    lcd->PrintString("Choose");
+    lcd->SetCursor(1, 8);
+    lcd->PrintString("  ");
     lcd->PrintCustomChar(LOCATION_X);
     lcd->PrintString(" or ");
     lcd->PrintCustomChar(LOCATION_0);
+    lcd->PrintString("   ");
 
     do
     {
@@ -344,7 +402,7 @@ auto Game::Get_User() const noexcept -> Game::Player
 
 [[noreturn]] void Game::Backlight_And_Reset_Runner() noexcept
 {
-    static bool light_on = true;
+    static bool light_on {false};
     static Key key {};
 
     auto * keypad = reinterpret_cast<Keypad *> (multicore_fifo_pop_blocking());
@@ -448,7 +506,6 @@ auto Game::Difficulty_From_Key(Key key) noexcept -> Game::IGameStrategy *
 
 [[noreturn]] void Game::Play() noexcept
 {
-    //lcd->BacklightOn();
     Draw_Game();
 
     led_segments->ColonOn();
@@ -456,7 +513,6 @@ auto Game::Difficulty_From_Key(Key key) noexcept -> Game::IGameStrategy *
 
     while (true)
     {
-        Reset_Board();
         Choose_Difficulty();
         Internal_Play();
     }

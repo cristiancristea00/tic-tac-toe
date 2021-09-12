@@ -177,9 +177,8 @@ class Game final
      * @param action The move to be made
      * @return The resulting board
      */
-    inline static auto Get_Result_Board(Board const & current_board,
-                                        Action const & action,
-                                        Player player) noexcept -> Game::Board;
+    inline static auto Get_Result_Board(Board const & current_board, Action const & action, Player player) noexcept
+    -> Game::Board;
 
     /**
      * Draws on the LCD the game board.
@@ -190,6 +189,25 @@ class Game final
      * Draws on the LCD the current board configuration.
      */
     void Draw_Board_State() const noexcept;
+
+    /**
+     * TODO
+     *
+     * @param winner
+     */
+    void Print_Winner_Update_Score(Player winner) noexcept;
+
+    /**
+     * TODO
+     *
+     * @param current_player
+     */
+    void Print_User_Info(Player current_player) const noexcept;
+
+    /**
+     * TODO
+     */
+    void Print_Computer_Info() const noexcept;
 
     /**
      * Main game logic
