@@ -260,6 +260,13 @@ class Game final
     /**
      * TODO
      *
+     * @param diff
+     */
+    inline void Print_Difficulty(std::string_view diff) noexcept;
+
+    /**
+     * TODO
+     *
      * @return
      */
     [[nodiscard]] inline auto Get_User() const noexcept -> Player;
@@ -436,7 +443,7 @@ class Game final
         auto operator=(MediumStrategy &&) -> MediumStrategy & = default;
     };
 
-    class ImpossibleStrategy final : public IGameStrategy
+    class HardStrategy final : public IGameStrategy
     {
      private:
 
@@ -476,7 +483,7 @@ class Game final
         /**
          * [Constructor]
          */
-        ImpossibleStrategy() noexcept = default;
+        HardStrategy() noexcept = default;
 
         /**
          * Computes the best move for the current board configuration using the
@@ -490,27 +497,27 @@ class Game final
         /**
          * [Destructor]
          */
-        ~ImpossibleStrategy() noexcept final = default;
+        ~HardStrategy() noexcept final = default;
 
         /**
          * [Copy constructor]
          */
-        ImpossibleStrategy(ImpossibleStrategy const &) = default;
+        HardStrategy(HardStrategy const &) = default;
 
         /**
          * [Move constructor]
          */
-        ImpossibleStrategy(ImpossibleStrategy &&) = default;
+        HardStrategy(HardStrategy &&) = default;
 
         /**
          * [Copy assigment operator]
          */
-        auto operator=(ImpossibleStrategy const &) -> ImpossibleStrategy & = default;
+        auto operator=(HardStrategy const &) -> HardStrategy & = default;
 
         /**
          * [Move assigment operator]
          */
-        auto operator=(ImpossibleStrategy &&) -> ImpossibleStrategy & = default;
+        auto operator=(HardStrategy &&) -> HardStrategy & = default;
     };
 
     std::unique_ptr<IGameStrategy> game_strategy;
@@ -521,5 +528,5 @@ class Game final
      * @param key
      * @return
      */
-    static auto Difficulty_From_Key(Key key) noexcept -> IGameStrategy *;
+    static auto Difficulty_From_Key(Key key) noexcept -> std::pair<Game::IGameStrategy *, std::string_view>;
 };

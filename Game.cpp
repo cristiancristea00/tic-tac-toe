@@ -359,7 +359,7 @@ void Game::Internal_Play() noexcept
 
                 do
                 {
-                    move = Action_From_Key(keypad->GetPressedKey());
+                    move = Action_From_Key(keypad->GetPressedKeyFirstCore());
                 }
                 while (!Is_Valid_Action(game_board, move));
                 game_board = Get_Result_Board(game_board, move, Get_Current_Player(game_board));
@@ -370,16 +370,23 @@ void Game::Internal_Play() noexcept
 
 inline void Game::Choose_Difficulty() noexcept
 {
+    static std::pair<Game::IGameStrategy *, std::string_view> difficulty {};
+
     lcd->SetCursor(0, TEXT_START_COLUMN);
     lcd->PrintString("  Choose  ");
     lcd->SetCursor(1, TEXT_START_COLUMN);
     lcd->PrintString("difficulty ");
+    lcd->SetCursor(3, 8);
+    lcd->PrintString("           ");
 
     do
     {
-        game_strategy.reset(Difficulty_From_Key(keypad->GetPressedKey()));
+        difficulty = Difficulty_From_Key(keypad->GetPressedKeyFirstCore());
     }
-    while (game_strategy == nullptr);
+    while (difficulty.first == nullptr);
+
+    game_strategy.reset(difficulty.first);
+    Print_Difficulty(difficulty.second);
 }
 
 inline auto Game::Get_User() const noexcept -> Game::Player
@@ -397,7 +404,7 @@ inline auto Game::Get_User() const noexcept -> Game::Player
 
     do
     {
-        choice = Player_From_Key(keypad->GetPressedKey());
+        choice = Player_From_Key(keypad->GetPressedKeyFirstCore());
     }
     while (choice == PLAYER_UNKNOWN);
 
@@ -415,7 +422,7 @@ void Game::Backlight_And_Reset_Runner() noexcept
 
     while (true)
     {
-        key = keypad->GetPressedKey();
+        key = keypad->GetPressedKeySecondCore();
         if (key == Key::KEY14)
         {
             light_on = !light_on;
@@ -493,18 +500,18 @@ auto Game::Player_From_Key(Key key) noexcept -> Game::Player
     }
 }
 
-auto Game::Difficulty_From_Key(Key key) noexcept -> Game::IGameStrategy *
+auto Game::Difficulty_From_Key(Key key) noexcept -> std::pair<Game::IGameStrategy *, std::string_view>
 {
     switch (key)
     {
         case Key::KEY4:
-            return new EasyStrategy;
+            return {new EasyStrategy, "EASY"};
         case Key::KEY8:
-            return new MediumStrategy;
+            return {new MediumStrategy, "MEDIUM"};
         case Key::KEY12:
-            return new ImpossibleStrategy;
+            return {new HardStrategy, "HARD"};
         default:
-            return nullptr;
+            return {nullptr, {}};
     }
 }
 
@@ -520,6 +527,12 @@ auto Game::Difficulty_From_Key(Key key) noexcept -> Game::IGameStrategy *
         Choose_Difficulty();
         Internal_Play();
     }
+}
+inline void Game::Print_Difficulty(std::string_view diff) noexcept
+{
+    lcd->SetCursor(3, 8);
+    lcd->PrintString("Diff:");
+    lcd->PrintString(diff);
 }
 
 Game::IGameStrategy::IGameStrategy() noexcept : random_number_generator(Get_Random_Seed()) {}
@@ -587,7 +600,7 @@ auto Game::MediumStrategy::GetNextMove(Board const & current_board) noexcept -> 
     return actions.back();
 }
 
-auto Game::ImpossibleStrategy::Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept
+auto Game::HardStrategy::Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept
 -> Game::Value
 {
     if (Is_Terminal(current_board))
@@ -611,7 +624,7 @@ auto Game::ImpossibleStrategy::Get_Min_Value(Board const & current_board, Value 
     return value;
 }
 
-auto Game::ImpossibleStrategy::Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept
+auto Game::HardStrategy::Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept
 -> Game::Value
 {
     if (Is_Terminal(current_board))
@@ -635,7 +648,7 @@ auto Game::ImpossibleStrategy::Get_Max_Value(Board const & current_board, Value 
     return value;
 }
 
-auto Game::ImpossibleStrategy::Get_Possible_Moves(Game::Board const & current_board) const
+auto Game::HardStrategy::Get_Possible_Moves(Game::Board const & current_board) const
 -> std::unordered_map<Action, Game::Value, Action::Hash>
 {
     auto actions = Get_Actions(current_board);
@@ -695,7 +708,7 @@ auto Game::ImpossibleStrategy::Get_Possible_Moves(Game::Board const & current_bo
     return possible_moves;
 }
 
-auto Game::ImpossibleStrategy::GetNextMove(Board const & current_board) noexcept -> Action
+auto Game::HardStrategy::GetNextMove(Board const & current_board) noexcept -> Action
 {
     if (Is_Terminal(current_board))
     {

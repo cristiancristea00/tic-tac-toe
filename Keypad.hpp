@@ -12,6 +12,8 @@
 #include <hardware/gpio.h>
 #include <pico/time.h>
 
+#include "LockGuard.hpp"
+
 #include <cstdint>
 #include <array>
 
@@ -47,6 +49,8 @@ class Keypad final
                    {Key::KEY9, Key::KEY10, Key::KEY11, Key::KEY12},
                    {Key::KEY13, Key::KEY14, Key::KEY15, Key::KEY16}}};
 
+    Mutex mutex {};
+
     /**
      * TODO
      */
@@ -57,7 +61,14 @@ class Keypad final
      *
      * @return
      */
-    [[nodiscard]] __attribute__((optimize("O0"))) auto Poll_Keys() const noexcept -> Key;
+    [[nodiscard]] auto Poll_Keys_First_Core() const noexcept -> Key;
+
+    /**
+     * TODO
+     *
+     * @return
+     */
+    [[nodiscard]] auto Poll_Keys_Second_Core() const noexcept -> Key;
 
  public:
 
@@ -74,6 +85,13 @@ class Keypad final
      *
      * @return
      */
-    [[nodiscard]] auto GetPressedKey() const noexcept -> Key;
+    [[nodiscard]] auto GetPressedKeyFirstCore() const noexcept -> Key;
+
+    /**
+     * TODO
+     *
+     * @return
+     */
+    [[nodiscard]] auto GetPressedKeySecondCore() const noexcept -> Key;
 };
 
