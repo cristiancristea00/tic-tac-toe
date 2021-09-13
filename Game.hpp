@@ -13,7 +13,7 @@
 #include <pico/multicore.h>
 
 #include "LCD_I2C.hpp"
-#include "Action.hpp"
+#include "Move.hpp"
 #include "TM1637.hpp"
 #include "Keypad.hpp"
 
@@ -80,7 +80,7 @@ class Game final
     std::unique_ptr<Keypad> keypad;
 
     /**
-     * TODO
+     * Starts the key poller on the econd core.
      */
     void Init_Second_Core() const noexcept;
 
@@ -137,7 +137,7 @@ class Game final
      * @param current_board The board to be analysed
      * @return A vector of available moves
      */
-    inline static auto Get_Actions(Board const & current_board) noexcept -> std::vector<Action>;
+    inline static auto Get_Actions(Board const & current_board) noexcept -> std::vector<Move>;
 
     /**
      * Get the winner of the current board configuration.
@@ -162,7 +162,7 @@ class Game final
      * @param action The action to be checked
      * @return True or False
      */
-    inline static auto Is_Valid_Action(Board const & current_board, Action const & action) noexcept -> bool;
+    inline static auto Is_Valid_Action(Board const & current_board, Move const & action) noexcept -> bool;
 
     /**
      * Gets the score for a terminal board.
@@ -179,7 +179,7 @@ class Game final
      * @param action The move to be made
      * @return The resulting board
      */
-    inline static auto Get_Result_Board(Board const & current_board, Action const & action, Player player) noexcept
+    inline static auto Get_Result_Board(Board const & current_board, Move const & action, Player player) noexcept
     -> Game::Board;
 
     /**
@@ -193,21 +193,22 @@ class Game final
     inline void Draw_Board_State() const noexcept;
 
     /**
-     * TODO
+     * Prints the winner on the LCD and updates the scoreboard.
      *
-     * @param winner
+     * @param winner The game winner
      */
     inline void Print_Winner_And_Update_Score(Player winner) noexcept;
 
     /**
-     * TODO
+     * Informs the user that it's their turn by printing on the LCD what symbol
+     * is using.
      *
-     * @param current_player
+     * @param current_player The current player
      */
-    inline void Print_User_Info(Player current_player) const noexcept;
+    inline void Print_User_Turn_Info(Player current_player) const noexcept;
 
     /**
-     * TODO
+     * Prints on the LCD that it's the computer turn.
      */
     inline void Print_Computer_Info() const noexcept;
 
@@ -232,23 +233,23 @@ class Game final
     inline void Increase_0_Score() noexcept;
 
     /**
-     * TODO
+     * Resets the scoreboard to its initial values.
      */
     inline void Reset_Scoreboard() noexcept;
 
     /**
-     * TODO
+     * Chooses a move based on the pressed key.
      *
-     * @param key
-     * @return
+     * @param key The pressed key
+     * @return The corresponding game move
      */
-    static auto Action_From_Key(Key key) noexcept -> Action;
+    static auto Action_From_Key(Key key) noexcept -> Move;
 
     /**
-     * TODO
+     * Chooses a player based on the pressed key.
      *
-     * @param key
-     * @return
+     * @param key The pressed key
+     * @return The corresponding game player
      */
     static auto Player_From_Key(Key key) noexcept -> Player;
 
@@ -258,16 +259,17 @@ class Game final
     inline void Choose_Difficulty() noexcept;
 
     /**
-     * TODO
+     * Prints on the LCD the current game difficulty.
      *
-     * @param diff
+     * @param diff Game difficulty
      */
     inline void Print_Difficulty(std::string_view diff) noexcept;
 
     /**
-     * TODO
+     * Prints on the LCD screen the choice between game symbols and waits for a
+     * key to be pressed to select the symbol.
      *
-     * @return
+     * @return The chosen player
      */
     [[nodiscard]] inline auto Get_User() const noexcept -> Player;
 
@@ -316,9 +318,9 @@ class Game final
         IGameStrategy() noexcept;
 
         /**
-         * TODO
+         * Getter for the Random Number Generator (RNG).
          *
-         * @return
+         * @return The RNG
          */
         auto GetRNG() noexcept -> std::mt19937 &;
 
@@ -328,7 +330,7 @@ class Game final
          * @param current_board The board to be analysed
          * @return A move
          */
-        [[nodiscard]] virtual auto GetNextMove(Board const & current_board) noexcept -> Action = 0;
+        [[nodiscard]] virtual auto GetNextMove(Board const & current_board) noexcept -> Move = 0;
 
         /**
          * [Destructor]
@@ -371,7 +373,7 @@ class Game final
          * @param current_board The board to be analysed
          * @return A random move
          */
-        [[nodiscard]] auto GetNextMove(Board const & current_board) noexcept -> Action final;
+        [[nodiscard]] auto GetNextMove(Board const & current_board) noexcept -> Move final;
 
         /**
          * [Destructor]
@@ -415,7 +417,7 @@ class Game final
          * @param current_board The board to be analysed
          * @return A somewhat good move
          */
-        [[nodiscard]] auto GetNextMove(Board const & current_board) noexcept -> Action final;
+        [[nodiscard]] auto GetNextMove(Board const & current_board) noexcept -> Move final;
 
         /**
          * [Destructor]
@@ -470,13 +472,14 @@ class Game final
         [[nodiscard]] auto Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept -> Value;
 
         /**
-         * TODO
+         * Helper function to get all the possible moves for the current board
+         * configuration
          *
-         * @param current_board
-         * @return
+         * @param current_board The board to be analysed
+         * @return All the possible moves
          */
         [[nodiscard]] auto Get_Possible_Moves(Board const & current_board) const
-        -> std::unordered_map<Action, Value, Action::Hash>;
+        -> std::unordered_map<Move, Value, Move::Hash>;
 
      public:
 
@@ -492,7 +495,7 @@ class Game final
          * @param current_board The board to be analysed
          * @return The best move
          */
-        [[nodiscard]] auto GetNextMove(Board const & current_board) noexcept -> Action final;
+        [[nodiscard]] auto GetNextMove(Board const & current_board) noexcept -> Move final;
 
         /**
          * [Destructor]
@@ -523,10 +526,10 @@ class Game final
     std::unique_ptr<IGameStrategy> game_strategy;
 
     /**
-     * TODO
+     * Chooses a move based on the pressed key.
      *
-     * @param key
-     * @return
+     * @param key The pressed key
+     * @return A pair formed of a difficulty and its name
      */
     static auto Difficulty_From_Key(Key key) noexcept -> std::pair<Game::IGameStrategy *, std::string_view>;
 };

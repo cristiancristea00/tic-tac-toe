@@ -13,7 +13,7 @@ pico_sdk_init()
 project(tic-tac-toe C CXX ASM)
 
 # Add executable
-add_executable(tic-tac-toe main.cpp Game.cpp Action.cpp LCD_I2C.cpp TM1637.cpp Keypad.cpp Mutex.cpp LockGuard.cpp)
+add_executable(tic-tac-toe main.cpp Game.cpp Move.cpp LCD_I2C.cpp TM1637.cpp Keypad.cpp Mutex.cpp LockGuard.cpp)
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 pico_generate_pio_header(tic-tac-toe ${CMAKE_CURRENT_LIST_DIR}/TM1637.pio)
 

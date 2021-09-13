@@ -26,12 +26,12 @@ class Mutex
     Mutex() noexcept;
 
     /**
-     * TODO
+     * Locks the mutex.
      */
     void Lock() const noexcept;
 
     /**
-     * TODO
+     * Unlocks the mutex.
      */
     void Unlock() const noexcept;
 };

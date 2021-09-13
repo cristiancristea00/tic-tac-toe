@@ -52,28 +52,28 @@ class Keypad final
     Mutex mutex {};
 
     /**
-     * TODO
+     * Initialises the arrays that contains the keypad pins.
      */
     inline void Init() noexcept;
 
     /**
-     * TODO
+     * [To be used only on the first core] Polls the keys on the keypad.
      *
-     * @return
+     * @return The pressed key or unknown if no key was pressed
      */
     [[nodiscard]] auto Poll_Keys_First_Core() const noexcept -> Key;
 
     /**
-     * TODO
+     * [To be used only on the second core] Polls the keys on the keypad.
      *
-     * @return
+     * @return The pressed key or unknown if no key was pressed
      */
     [[nodiscard]] auto Poll_Keys_Second_Core() const noexcept -> Key;
 
  public:
 
     /**
-     * TOD
+     * TODO
      *
      * @param rows
      * @param columns

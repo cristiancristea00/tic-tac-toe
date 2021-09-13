@@ -128,9 +128,9 @@ auto Game::Get_Current_Player(Board const & current_board) noexcept -> Game::Pla
     return (moves % 2 == 0) ? PLAYER_X : PLAYER_0;
 }
 
-inline auto Game::Get_Actions(Board const & current_board) noexcept -> std::vector<Action>
+inline auto Game::Get_Actions(Board const & current_board) noexcept -> std::vector<Move>
 {
-    static std::vector<Action> actions;
+    static std::vector<Move> actions;
     actions.reserve(BOARD_SIZE * BOARD_SIZE);
 
     actions.clear();
@@ -168,7 +168,7 @@ inline auto Game::Is_Terminal(Board const & current_board) noexcept -> bool
     return Is_Board_Full(current_board) || Is_Winner(PLAYER_X, current_board) || Is_Winner(PLAYER_0, current_board);
 }
 
-inline auto Game::Is_Valid_Action(Board const & current_board, Action const & action) noexcept -> bool
+inline auto Game::Is_Valid_Action(Board const & current_board, Move const & action) noexcept -> bool
 {
     return action.GetRow() >= 0 && action.GetColumn() >= 0 && action.GetRow() < BOARD_SIZE
             && action.GetColumn() < BOARD_SIZE
@@ -189,7 +189,7 @@ inline auto Game::Get_Board_Value(Board const & current_board) noexcept -> Game:
 }
 
 inline auto Game::Get_Result_Board(Board const & current_board,
-                                   Action const & action,
+                                   Move const & action,
                                    Player player) noexcept -> Game::Board
 {
     auto action_board = current_board;
@@ -268,7 +268,7 @@ inline void Game::Print_Winner_And_Update_Score(Player winner) noexcept
     sleep_ms(AFTER_WIN_DELAY);
 }
 
-inline void Game::Print_User_Info(Player current_player) const noexcept
+inline void Game::Print_User_Turn_Info(Player current_player) const noexcept
 {
     lcd->SetCursor(0, TEXT_START_COLUMN);
     lcd->PrintString(" Your turn");
@@ -333,7 +333,7 @@ void Game::Internal_Play() noexcept
             }
             if (user == current_player)
             {
-                Print_User_Info(current_player);
+                Print_User_Turn_Info(current_player);
             }
             else
             {
@@ -355,7 +355,7 @@ void Game::Internal_Play() noexcept
             }
             else if (user == current_player)
             {
-                static Action move;
+                static Move move;
 
                 do
                 {
@@ -460,7 +460,7 @@ inline void Game::Reset_Scoreboard() noexcept
     Update_Scoreboard();
 }
 
-auto Game::Action_From_Key(Key key) noexcept -> Action
+auto Game::Action_From_Key(Key key) noexcept -> Move
 {
     switch (key)
     {
@@ -565,7 +565,7 @@ auto Game::IGameStrategy::GetRNG() noexcept -> std::mt19937 &
     return random_number_generator;
 }
 
-auto Game::EasyStrategy::GetNextMove(Board const & current_board) noexcept -> Action
+auto Game::EasyStrategy::GetNextMove(Board const & current_board) noexcept -> Move
 {
     if (Is_Terminal(current_board))
     {
@@ -578,7 +578,7 @@ auto Game::EasyStrategy::GetNextMove(Board const & current_board) noexcept -> Ac
     return actions.back();
 }
 
-auto Game::MediumStrategy::GetNextMove(Board const & current_board) noexcept -> Action
+auto Game::MediumStrategy::GetNextMove(Board const & current_board) noexcept -> Move
 {
     if (Is_Terminal(current_board))
     {
@@ -611,7 +611,7 @@ auto Game::HardStrategy::Get_Min_Value(Board const & current_board, Value alpha,
     Value value = VALUE_MAX;
 
     auto current_actions = Get_Actions(current_board);
-    for (Action const & action: current_actions)
+    for (Move const & action: current_actions)
     {
         value = std::min(value, Get_Max_Value(Get_Result_Board(current_board, action,
                                                                Get_Current_Player(current_board)), alpha, beta));
@@ -635,7 +635,7 @@ auto Game::HardStrategy::Get_Max_Value(Board const & current_board, Value alpha,
     Value value = VALUE_MIN;
 
     auto current_actions = Get_Actions(current_board);
-    for (Action const & action: current_actions)
+    for (Move const & action: current_actions)
     {
         value = std::max(value, Get_Min_Value(Get_Result_Board(current_board, action,
                                                                Get_Current_Player(current_board)), alpha, beta));
@@ -649,15 +649,15 @@ auto Game::HardStrategy::Get_Max_Value(Board const & current_board, Value alpha,
 }
 
 auto Game::HardStrategy::Get_Possible_Moves(Game::Board const & current_board) const
--> std::unordered_map<Action, Game::Value, Action::Hash>
+-> std::unordered_map<Move, Game::Value, Move::Hash>
 {
     auto actions = Get_Actions(current_board);
 
-    std::unordered_map<Action, Value, Action::Hash> possible_moves;
+    std::unordered_map<Move, Value, Move::Hash> possible_moves;
     if (Get_Current_Player(current_board) == PLAYER_X)
     {
         Value max_value = VALUE_MIN;
-        for (Action const & action: actions)
+        for (Move const & action: actions)
         {
             possible_moves.emplace(action, Get_Min_Value(Get_Result_Board(current_board, action,
                                                                           Get_Current_Player(current_board)),
@@ -682,7 +682,7 @@ auto Game::HardStrategy::Get_Possible_Moves(Game::Board const & current_board) c
     else
     {
         Value min_value = VALUE_MAX;
-        for (Action const & action: actions)
+        for (Move const & action: actions)
         {
             possible_moves.emplace(action, Get_Max_Value(Get_Result_Board(current_board, action,
                                                                           Get_Current_Player(current_board)),
@@ -708,7 +708,7 @@ auto Game::HardStrategy::Get_Possible_Moves(Game::Board const & current_board) c
     return possible_moves;
 }
 
-auto Game::HardStrategy::GetNextMove(Board const & current_board) noexcept -> Action
+auto Game::HardStrategy::GetNextMove(Board const & current_board) noexcept -> Move
 {
     if (Is_Terminal(current_board))
     {
@@ -717,7 +717,7 @@ auto Game::HardStrategy::GetNextMove(Board const & current_board) noexcept -> Ac
 
     auto possible_moves = Get_Possible_Moves(current_board);
 
-    std::vector<std::pair<Action, Value>> result {possible_moves.begin(), possible_moves.end()};
+    std::vector<std::pair<Move, Value>> result {possible_moves.begin(), possible_moves.end()};
     for (auto const &[ACTION, VALUE]: result)
     {
         if (Is_Winner(Get_Current_Player(current_board), Get_Result_Board(current_board, ACTION,
