@@ -33,7 +33,7 @@ Game::Game(LCD_I2C * lcd, TM1637 * led_segments, Keypad * keypad) noexcept
 
 void Game::Init_Second_Core() const noexcept
 {
-    multicore_launch_core1(Backlight_And_Reset_Runner);
+    multicore_launch_core1(Key_Poller_Runner);
     multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(keypad.get()));
     multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(lcd.get()));
     multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(this));
@@ -359,7 +359,7 @@ void Game::Internal_Play() noexcept
 
                 do
                 {
-                    move = Action_From_Key(keypad->GetPressedKeyFirstCore());
+                    move = Action_From_Key(keypad->GetPressedKey());
                 }
                 while (!Is_Valid_Action(game_board, move));
                 game_board = Get_Result_Board(game_board, move, Get_Current_Player(game_board));
@@ -381,7 +381,7 @@ inline void Game::Choose_Difficulty() noexcept
 
     do
     {
-        difficulty = Difficulty_From_Key(keypad->GetPressedKeyFirstCore());
+        difficulty = Difficulty_From_Key(keypad->GetPressedKey());
     }
     while (difficulty.first == nullptr);
 
@@ -404,17 +404,17 @@ inline auto Game::Get_User() const noexcept -> Game::Player
 
     do
     {
-        choice = Player_From_Key(keypad->GetPressedKeyFirstCore());
+        choice = Player_From_Key(keypad->GetPressedKey());
     }
     while (choice == PLAYER_UNKNOWN);
 
     return choice;
 }
 
-void Game::Backlight_And_Reset_Runner() noexcept
+void Game::Key_Poller_Runner() noexcept
 {
     static bool light_on {false};
-    static Key key {};
+    static Key key {Key::UNKOWN};
 
     auto * keypad = reinterpret_cast<Keypad *> (multicore_fifo_pop_blocking());
     auto * lcd = reinterpret_cast<LCD_I2C *>(multicore_fifo_pop_blocking());
@@ -422,15 +422,19 @@ void Game::Backlight_And_Reset_Runner() noexcept
 
     while (true)
     {
-        key = keypad->GetPressedKeySecondCore();
-        if (key == Key::KEY14)
+        key = keypad->GetKeyFromPoller();
+        if (key == Key::KEY13)
         {
             light_on = !light_on;
             lcd->SetBacklight(light_on);
         }
-        else if (key == Key::KEY13)
+        else if (key == Key::KEY14)
         {
             game->Reset_Scoreboard();
+        }
+        else
+        {
+            multicore_fifo_push_blocking(static_cast<uint32_t>(key));
         }
     }
 }

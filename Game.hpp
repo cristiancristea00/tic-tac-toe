@@ -274,9 +274,9 @@ class Game final
     [[nodiscard]] inline auto Get_User() const noexcept -> Player;
 
     /**
-     * TODO
+     * Key poller that runs on the second core.
      */
-    [[noreturn]] static void Backlight_And_Reset_Runner() noexcept;
+    [[noreturn]] static void Key_Poller_Runner() noexcept;
 
  public:
 

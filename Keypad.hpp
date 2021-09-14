@@ -9,10 +9,9 @@
 
 #pragma once
 
+#include <pico/multicore.h>
 #include <hardware/gpio.h>
 #include <pico/time.h>
-
-#include "LockGuard.hpp"
 
 #include <cstdint>
 #include <array>
@@ -49,49 +48,41 @@ class Keypad final
                    {Key::KEY9, Key::KEY10, Key::KEY11, Key::KEY12},
                    {Key::KEY13, Key::KEY14, Key::KEY15, Key::KEY16}}};
 
-    Mutex mutex {};
-
     /**
      * Initialises the arrays that contains the keypad pins.
      */
     inline void Init() noexcept;
 
     /**
-     * [To be used only on the first core] Polls the keys on the keypad.
+     * Polls the keypad to check if a button was pressed. It uses a software
+     * debounce method. If no key was pressed it returns unknown.
      *
-     * @return The pressed key or unknown if no key was pressed
+     * @return The pressed key or unknown
      */
-    [[nodiscard]] auto Poll_Keys_First_Core() const noexcept -> Key;
-
-    /**
-     * [To be used only on the second core] Polls the keys on the keypad.
-     *
-     * @return The pressed key or unknown if no key was pressed
-     */
-    [[nodiscard]] auto Poll_Keys_Second_Core() const noexcept -> Key;
+    [[nodiscard]] auto Key_Poller() const noexcept -> Key;
 
  public:
 
     /**
-     * TODO
+     * [Constructor]
      *
-     * @param rows
-     * @param columns
+     * @param rows The rows pins
+     * @param columns The columns pins
      */
     Keypad(array const & rows, array const & columns) noexcept;
 
     /**
-     * TODO
+     * Blocks the execution until a key is pressed.
      *
-     * @return
+     * @return The pressed key
      */
-    [[nodiscard]] auto GetPressedKeyFirstCore() const noexcept -> Key;
+    [[nodiscard]] auto GetKeyFromPoller() const noexcept -> Key;
 
     /**
-     * TODO
+     * Gets the pressed key from the intercore FIFO.
      *
-     * @return
+     * @return The pressed key
      */
-    [[nodiscard]] auto GetPressedKeySecondCore() const noexcept -> Key;
+    [[nodiscard]] static auto GetPressedKey() noexcept -> Key;
 };
 

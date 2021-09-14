@@ -13,12 +13,12 @@ pico_sdk_init()
 project(tic-tac-toe C CXX ASM)
 
 # Add executable
-add_executable(tic-tac-toe main.cpp Game.cpp Move.cpp LCD_I2C.cpp TM1637.cpp Keypad.cpp Mutex.cpp LockGuard.cpp)
+add_executable(tic-tac-toe main.cpp Game.cpp Move.cpp LCD_I2C.cpp TM1637.cpp Keypad.cpp)
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 pico_generate_pio_header(tic-tac-toe ${CMAKE_CURRENT_LIST_DIR}/TM1637.pio)
 
 pico_set_program_name(tic-tac-toe "Tic-Tac-Toe LCD Game")
-pico_set_program_version(tic-tac-toe "1.0")
+pico_set_program_version(tic-tac-toe "1.1")
 pico_set_program_url(tic-tac-toe "https://github.com/cristiancristea00/tic-tac-toe")
 pico_set_program_description(tic-tac-toe "Copyright (c) 2021 Cristian Cristea")
 
