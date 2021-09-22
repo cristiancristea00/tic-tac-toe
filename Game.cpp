@@ -9,6 +9,8 @@
 
 #include "Game.hpp"
 
+#include <memory>
+
 using Utility::PlayerSymbol;
 using Utility::BOARD_SIZE;
 
@@ -87,13 +89,13 @@ inline void Game::Draw_Board_State() const noexcept
     {
         lcd->SetCursor(row, FIRST_COLUMN);
         lcd->PrintCustomChar(LCD_Char_Location_From_Player_Symbol(
-                BoardManager::GetInstance()->GetGameBoard()[row][0]));
+                BoardManager::Instance()->GetGameBoard()[row][0]));
         lcd->SetCursor(row, SECOND_COLUMN);
         lcd->PrintCustomChar(LCD_Char_Location_From_Player_Symbol(
-                BoardManager::GetInstance()->GetGameBoard()[row][1]));
+                BoardManager::Instance()->GetGameBoard()[row][1]));
         lcd->SetCursor(row, THIRD_COLUMN);
         lcd->PrintCustomChar(LCD_Char_Location_From_Player_Symbol(
-                BoardManager::GetInstance()->GetGameBoard()[row][2]));
+                BoardManager::Instance()->GetGameBoard()[row][2]));
     }
 }
 
@@ -167,13 +169,24 @@ inline void Game::Print_Computer_Info() const noexcept
 
 void Game::Internal_Play() noexcept
 {
-    PlayerSymbol user = PlayerSymbol::UNK;
+    static bool second_player_turn {false};
 
     while (true)
     {
-        if (user == PlayerSymbol::UNK)
+        if (first_player->GetSymbol() == PlayerSymbol::UNK)
         {
-            user = Get_User();
+            static PlayerSymbol first_player_symbol;
+
+            first_player_symbol = Get_User();
+            first_player->SetSymbol(first_player_symbol);
+            if (first_player_symbol == PlayerSymbol::X)
+            {
+                second_player->SetSymbol(PlayerSymbol::O);
+            }
+            else
+            {
+                second_player->SetSymbol(PlayerSymbol::X);
+            };
         }
         else
         {
@@ -182,18 +195,17 @@ void Game::Internal_Play() noexcept
 
             Draw_Board_State();
 
-            game_over = BoardManager::GetInstance()->IsTerminal(BoardManager::GetInstance()->GetGameBoard());
-            current_player = BoardManager::GetInstance()->GetCurrentPlayer(BoardManager::GetInstance()->GetGameBoard());
+            game_over = BoardManager::Instance()->IsTerminal(BoardManager::Instance()->GetGameBoard());
+            current_player = BoardManager::Instance()->GetCurrentPlayer(BoardManager::Instance()->GetGameBoard());
 
             if (game_over)
             {
-                Print_Winner_And_Update_Score(BoardManager::GetInstance()
-                                                      ->GetWinner(BoardManager::GetInstance()->GetGameBoard()));
-                BoardManager::GetInstance()->ResetBoard();
+                Print_Winner_And_Update_Score(BoardManager::Instance()->GetWinner(BoardManager::Instance()->GetGameBoard()));
+                BoardManager::Instance()->ResetBoard();
                 Draw_Board_State();
                 break;
             }
-            if (user == current_player)
+            if (first_player->GetSymbol() == current_player)
             {
                 Print_User_Turn_Info(current_player);
             }
@@ -202,46 +214,38 @@ void Game::Internal_Play() noexcept
                 Print_Computer_Info();
             }
 
-            if (user != current_player)
+            if (first_player->GetSymbol() != current_player)
             {
-                if (ai_turn)
+                if (second_player_turn)
                 {
-                    auto move = game_strategy->GetNextMove(BoardManager::GetInstance()->GetGameBoard());
-                    BoardManager::GetInstance()->GetGameBoard() = BoardManager::GetInstance()->
-                            GetResultBoard(BoardManager::GetInstance()->GetGameBoard(), move,
-                                           BoardManager::GetInstance()->
-                                                   GetCurrentPlayer(BoardManager::GetInstance()->GetGameBoard()));
-                    ai_turn = false;
+                    auto move = second_player->GetNextMove(BoardManager::Instance()->GetGameBoard(), keypad.get());
+                    BoardManager::Instance()->GetGameBoard() = BoardManager::Instance()->GetResultBoard(
+                            BoardManager::Instance()->GetGameBoard(), move, second_player->GetSymbol());
+                    second_player_turn = false;
                 }
                 else
                 {
-                    ai_turn = true;
+                    second_player_turn = true;
                 }
             }
-            else if (user == current_player)
+            else if (first_player->GetSymbol() == current_player)
             {
                 static Move move;
 
-                do
-                {
-                    move = Action_From_Key(keypad->GetPressedKey());
-                }
-                while (!BoardManager::GetInstance()->IsValidAction(BoardManager::GetInstance()->GetGameBoard(), move));
-                BoardManager::GetInstance()->GetGameBoard() = BoardManager::GetInstance()->
-                        GetResultBoard(BoardManager::GetInstance()->GetGameBoard(), move,
-                                       BoardManager::GetInstance()->GetCurrentPlayer(
-                                               BoardManager::GetInstance()->GetGameBoard()));
+                move = first_player->GetNextMove(BoardManager::Instance()->GetGameBoard(), keypad.get());
+                BoardManager::Instance()->GetGameBoard() = BoardManager::Instance()->GetResultBoard(
+                        BoardManager::Instance()->GetGameBoard(), move, first_player->GetSymbol());
             }
         }
     }
 }
 
-inline void Game::Choose_Difficulty() noexcept
+inline auto Game::Get_Difficulty() noexcept -> IPlayerStrategy *
 {
     static std::pair<IPlayerStrategy *, std::string_view> difficulty {};
 
     lcd->SetCursor(0, TEXT_START_COLUMN);
-    lcd->PrintString("  Choose  ");
+    lcd->PrintString("  Choose   ");
     lcd->SetCursor(1, TEXT_START_COLUMN);
     lcd->PrintString("difficulty ");
     lcd->SetCursor(3, TEXT_START_COLUMN);
@@ -249,12 +253,12 @@ inline void Game::Choose_Difficulty() noexcept
 
     do
     {
-        difficulty = Difficulty_From_Key(keypad->GetPressedKey());
+        difficulty = Keypad::DifficultyFromKey(keypad->GetPressedKey());
     }
     while (difficulty.first == nullptr);
 
-    game_strategy.reset(difficulty.first);
     Print_Difficulty(difficulty.second);
+    return difficulty.first;
 }
 
 inline auto Game::Get_User() const noexcept -> PlayerSymbol
@@ -272,7 +276,7 @@ inline auto Game::Get_User() const noexcept -> PlayerSymbol
 
     do
     {
-        choice = Player_From_Key(keypad->GetPressedKey());
+        choice = Keypad::PlayerFromKey(keypad->GetPressedKey());
     }
     while (choice == PlayerSymbol::UNK);
 
@@ -332,61 +336,6 @@ inline void Game::Reset_Scoreboard() noexcept
     Update_Scoreboard();
 }
 
-auto Game::Action_From_Key(Key key) noexcept -> Move
-{
-    switch (key)
-    {
-        case Key::KEY1:
-            return {0, 0};
-        case Key::KEY2:
-            return {0, 1};
-        case Key::KEY3:
-            return {0, 2};
-        case Key::KEY5:
-            return {1, 0};
-        case Key::KEY6:
-            return {1, 1};
-        case Key::KEY7:
-            return {1, 2};
-        case Key::KEY9:
-            return {2, 0};
-        case Key::KEY10:
-            return {2, 1};
-        case Key::KEY11:
-            return {2, 2};
-        default:
-            return {-1, -1};
-    }
-}
-
-auto Game::Player_From_Key(Key key) noexcept -> PlayerSymbol
-{
-    switch (key)
-    {
-        case Key::KEY15:
-            return PlayerSymbol::X;
-        case Key::KEY16:
-            return PlayerSymbol::O;
-        default:
-            return PlayerSymbol::UNK;
-    }
-}
-
-auto Game::Difficulty_From_Key(Key key) noexcept -> std::pair<IPlayerStrategy *, std::string_view>
-{
-    switch (key)
-    {
-        case Key::KEY4:
-            return {new EasyStrategy, "EASY"};
-        case Key::KEY8:
-            return {new MediumStrategy, "MEDIUM"};
-        case Key::KEY12:
-            return {new HardStrategy, "HARD"};
-        default:
-            return {nullptr, {}};
-    }
-}
-
 [[noreturn]] void Game::Play() noexcept
 {
     Draw_Game();
@@ -394,15 +343,42 @@ auto Game::Difficulty_From_Key(Key key) noexcept -> std::pair<IPlayerStrategy *,
     led_segments->ColonOn();
     Update_Scoreboard();
 
+    Choose_Oponent();
+
     while (true)
     {
-        Choose_Difficulty();
         Internal_Play();
     }
 }
+
 inline void Game::Print_Difficulty(std::string_view diff) noexcept
 {
     lcd->SetCursor(3, TEXT_START_COLUMN);
     lcd->PrintString("Diff:");
     lcd->PrintString(diff);
+}
+
+void Game::Choose_Oponent() noexcept
+{
+    static std::string_view choice {};
+    
+    lcd->SetCursor(0, TEXT_START_COLUMN);
+    lcd->PrintString("Play versus");
+    lcd->SetCursor(1, TEXT_START_COLUMN);
+    lcd->PrintString("HUMAN or AI");
+
+    do
+    {
+        choice = Keypad::OponentFromKey(keypad->GetPressedKey());
+    }
+    while (choice.empty());
+
+    if (choice == "HUMAN")
+    {
+        second_player = std::make_unique<Player>(PlayerSymbol::UNK, new HumanStrategy);
+    }
+    else
+    {
+        second_player = std::make_unique<Player>(PlayerSymbol::UNK, Get_Difficulty());
+    }
 }

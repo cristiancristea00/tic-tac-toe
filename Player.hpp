@@ -9,7 +9,10 @@
 
 #pragma once
 
+#include "IPlayerStrategy.hpp"
 #include "Utility.hpp"
+
+#include <memory>
 
 class Player
 {
@@ -17,8 +20,38 @@ class Player
 
     Utility::PlayerSymbol symbol {};
 
+    std::unique_ptr<IPlayerStrategy> strategy;
+
  public:
 
-    auto GetSymbol() const noexcept -> Utility::PlayerSymbol;
+    /**
+     * TODO
+     *
+     * @param symbol
+     * @param strategy
+     */
+    Player(Utility::PlayerSymbol symbol, IPlayerStrategy * strategy) noexcept;
+
+    /**
+     * TODO
+     *
+     * @return
+     */
+    [[nodiscard]] auto GetSymbol() const noexcept -> Utility::PlayerSymbol;
+
+    /**
+     * TODO
+     *
+     * @param player_symbol
+     */
+    void SetSymbol(Utility::PlayerSymbol player_symbol) noexcept;
+
+    /**
+     * TODO
+     *
+     * @param current_board
+     * @return
+     */
+    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad * keypad) noexcept -> Move;
 };
 

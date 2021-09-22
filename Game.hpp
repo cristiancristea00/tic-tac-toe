@@ -40,7 +40,8 @@ class Game final
 
     static constexpr LCD_I2C::byte TEXT_START_COLUMN = 8;
 
-    bool ai_turn = false;
+    std::unique_ptr<Player> first_player {std::make_unique<Player>(Utility::PlayerSymbol::UNK, new HumanStrategy)};
+    std::unique_ptr<Player> second_player;
 
     Utility::Value score_X {};
     Utility::Value score_0 {};
@@ -48,7 +49,6 @@ class Game final
     std::unique_ptr<LCD_I2C> lcd;
     std::unique_ptr<TM1637> led_segments;
     std::unique_ptr<Keypad> keypad;
-    std::unique_ptr<IPlayerStrategy> game_strategy;
 
     /**
      * Starts the key poller on the second core.
@@ -120,25 +120,9 @@ class Game final
     inline void Reset_Scoreboard() noexcept;
 
     /**
-     * Chooses a move based on the pressed key.
-     *
-     * @param key The pressed key
-     * @return The corresponding game move
-     */
-    static auto Action_From_Key(Key key) noexcept -> Move;
-
-    /**
-     * Chooses a player based on the pressed key.
-     *
-     * @param key The pressed key
-     * @return The corresponding game player
-     */
-    static auto Player_From_Key(Key key) noexcept -> Utility::PlayerSymbol;
-
-    /**
      * Chooses the game difficulty
      */
-    inline void Choose_Difficulty() noexcept;
+    inline auto Get_Difficulty() noexcept -> IPlayerStrategy *;
 
     /**
      * Prints on the LCD the current game difficulty.
@@ -161,12 +145,9 @@ class Game final
     [[noreturn]] static void Key_Poller_Runner() noexcept;
 
     /**
-     * Chooses a move based on the pressed key.
-     *
-     * @param key The pressed key
-     * @return A pair formed of a difficulty and its name
+     * TODO
      */
-    static auto Difficulty_From_Key(Key key) noexcept -> std::pair<IPlayerStrategy *, std::string_view>;
+    void Choose_Oponent() noexcept;
 
  public:
 

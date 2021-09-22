@@ -11,7 +11,19 @@
 
 using Utility::PlayerSymbol;
 
+Player::Player(PlayerSymbol symbol, IPlayerStrategy * const strategy) noexcept : symbol(symbol), strategy(strategy) {}
+
 auto Player::GetSymbol() const noexcept -> PlayerSymbol
 {
     return symbol;
+}
+
+void Player::SetSymbol(PlayerSymbol player_symbol) noexcept
+{
+    symbol = player_symbol;
+}
+
+auto Player::GetNextMove(Utility::Board const & current_board, Keypad * const keypad) noexcept -> Move
+{
+    return strategy->GetNextMove(current_board, keypad);
 }

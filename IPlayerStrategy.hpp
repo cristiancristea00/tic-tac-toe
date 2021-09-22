@@ -18,6 +18,8 @@
 #include <unordered_map>
 #include <random>
 
+class Keypad;
+
 class IPlayerStrategy
 {
  private:
@@ -64,7 +66,7 @@ class IPlayerStrategy
      * @param current_board The board to be analysed
      * @return A move
      */
-    [[nodiscard]] virtual auto GetNextMove(Utility::Board const & current_board) noexcept -> Move = 0;
+    [[nodiscard]] virtual auto GetNextMove(Utility::Board const & current_board, Keypad *) noexcept -> Move = 0;
 
     /**
      * [Destructor]
@@ -107,7 +109,7 @@ class EasyStrategy final : public IPlayerStrategy
      * @param current_board The board to be analysed
      * @return A random move
      */
-    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board) noexcept -> Move final;
+    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad *) noexcept -> Move final;
 
     /**
      * [Destructor]
@@ -151,7 +153,7 @@ class MediumStrategy final : public IPlayerStrategy
      * @param current_board The board to be analysed
      * @return A somewhat good move
      */
-    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board) noexcept -> Move final;
+    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad *) noexcept -> Move final;
 
     /**
      * [Destructor]
@@ -231,7 +233,7 @@ class HardStrategy final : public IPlayerStrategy
      * @param current_board The board to be analysed
      * @return The best move
      */
-    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board) noexcept -> Move final;
+    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad * keypad) noexcept -> Move final;
 
     /**
      * [Destructor]
@@ -274,7 +276,7 @@ class HumanStrategy final : public IPlayerStrategy
      * @param current_board The board to be analysed
      * @return A somewhat good move
      */
-    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board) noexcept -> Move final;
+    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad * keypad) noexcept -> Move final;
 
     /**
      * [Destructor]

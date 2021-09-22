@@ -33,7 +33,7 @@ class BoardManager final
      *
      * @return
      */
-    static auto GetInstance() noexcept -> BoardManager *;
+    static auto Instance() noexcept -> BoardManager *;
 
     /**
      * [Destructor]

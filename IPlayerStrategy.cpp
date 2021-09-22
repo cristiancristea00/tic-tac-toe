@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "IPlayerStrategy.hpp"
+#include "Keypad.hpp"
 
 using Utility::PlayerSymbol;
 using Utility::Value;
@@ -43,34 +44,34 @@ auto IPlayerStrategy::GetRNG() noexcept -> std::mt19937 &
     return random_number_generator;
 }
 
-auto EasyStrategy::GetNextMove(Board const & current_board) noexcept -> Move
+auto EasyStrategy::GetNextMove(Utility::Board const & current_board, Keypad * const  /*keypad*/) noexcept -> Move
 {
-    if (BoardManager::GetInstance()->IsTerminal(current_board))
+    if (BoardManager::Instance()->IsTerminal(current_board))
     {
         return {};
     }
 
-    auto actions = BoardManager::GetInstance()->GetActions(current_board);
+    auto actions = BoardManager::Instance()->GetActions(current_board);
 
     std::sample(actions.begin(), actions.end(), std::back_inserter(actions), 1, GetRNG());
     return actions.back();
 }
 
-auto MediumStrategy::GetNextMove(Board const & current_board) noexcept -> Move
+auto MediumStrategy::GetNextMove(Utility::Board const & current_board, Keypad * const  /*keypad*/) noexcept -> Move
 {
-    if (BoardManager::GetInstance()->IsTerminal(current_board))
+    if (BoardManager::Instance()->IsTerminal(current_board))
     {
         return {};
     }
 
-    auto actions = BoardManager::GetInstance()->GetActions(current_board);
+    auto actions = BoardManager::Instance()->GetActions(current_board);
 
     for (auto const & action: actions)
     {
-        if (BoardManager::GetInstance()->
-                IsWinner(PlayerSymbol::X, BoardManager::GetInstance()->
+        if (BoardManager::Instance()->
+                IsWinner(PlayerSymbol::X, BoardManager::Instance()->
                 GetResultBoard(current_board, action, PlayerSymbol::X)) ||
-                BoardManager::GetInstance()->IsWinner(PlayerSymbol::O, BoardManager::GetInstance()->
+                BoardManager::Instance()->IsWinner(PlayerSymbol::O, BoardManager::Instance()->
                         GetResultBoard(current_board, action, PlayerSymbol::O)))
         {
             return action;
@@ -83,18 +84,18 @@ auto MediumStrategy::GetNextMove(Board const & current_board) noexcept -> Move
 
 auto HardStrategy::Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept -> Value
 {
-    if (BoardManager::GetInstance()->IsTerminal(current_board))
+    if (BoardManager::Instance()->IsTerminal(current_board))
     {
-        return BoardManager::GetInstance()->GetBoardValue(current_board);
+        return BoardManager::Instance()->GetBoardValue(current_board);
     }
 
     Value value = VALUE_MAX;
 
-    auto current_actions = BoardManager::GetInstance()->GetActions(current_board);
+    auto current_actions = BoardManager::Instance()->GetActions(current_board);
     for (Move const & action: current_actions)
     {
-        value = std::min(value, Get_Max_Value(BoardManager::GetInstance()->
-                GetResultBoard(current_board, action, BoardManager::GetInstance()->
+        value = std::min(value, Get_Max_Value(BoardManager::Instance()->
+                GetResultBoard(current_board, action, BoardManager::Instance()->
                 GetCurrentPlayer(current_board)), alpha, beta));
         beta = std::min(beta, value);
         if (value <= alpha)
@@ -107,18 +108,18 @@ auto HardStrategy::Get_Min_Value(Board const & current_board, Value alpha, Value
 
 auto HardStrategy::Get_Max_Value(Board const & current_board, Value alpha, Value beta) const noexcept -> Value
 {
-    if (BoardManager::GetInstance()->IsTerminal(current_board))
+    if (BoardManager::Instance()->IsTerminal(current_board))
     {
-        return BoardManager::GetInstance()->GetBoardValue(current_board);
+        return BoardManager::Instance()->GetBoardValue(current_board);
     }
 
     Value value = VALUE_MIN;
 
-    auto current_actions = BoardManager::GetInstance()->GetActions(current_board);
+    auto current_actions = BoardManager::Instance()->GetActions(current_board);
     for (Move const & action: current_actions)
     {
-        value = std::max(value, Get_Min_Value(BoardManager::GetInstance()->
-                GetResultBoard(current_board, action, BoardManager::GetInstance()->
+        value = std::max(value, Get_Min_Value(BoardManager::Instance()->
+                GetResultBoard(current_board, action, BoardManager::Instance()->
                 GetCurrentPlayer(current_board)), alpha, beta));
         alpha = std::max(alpha, value);
         if (value >= beta)
@@ -132,16 +133,16 @@ auto HardStrategy::Get_Max_Value(Board const & current_board, Value alpha, Value
 auto HardStrategy::Get_Possible_Moves(Board const & current_board) const
 -> std::unordered_map<Move, Value, Move::Hash>
 {
-    auto actions = BoardManager::GetInstance()->GetActions(current_board);
+    auto actions = BoardManager::Instance()->GetActions(current_board);
 
-    std::unordered_map<Move, Value, Move::Hash> possible_moves;
-    if (BoardManager::GetInstance()->GetCurrentPlayer(current_board) == PlayerSymbol::X)
+    std::unordered_map<Move, Value, Move::Hash> possible_moves {};
+    if (BoardManager::Instance()->GetCurrentPlayer(current_board) == PlayerSymbol::X)
     {
         Value max_value = VALUE_MIN;
         for (Move const & action: actions)
         {
-            possible_moves.emplace(action, Get_Min_Value(BoardManager::GetInstance()->
-                    GetResultBoard(current_board, action, BoardManager::GetInstance()->
+            possible_moves.emplace(action, Get_Min_Value(BoardManager::Instance()->
+                    GetResultBoard(current_board, action, BoardManager::Instance()->
                     GetCurrentPlayer(current_board)), VALUE_MIN, VALUE_MAX));
             if (possible_moves[action] > max_value)
             {
@@ -158,8 +159,8 @@ auto HardStrategy::Get_Possible_Moves(Board const & current_board) const
         Value min_value = VALUE_MAX;
         for (Move const & action: actions)
         {
-            possible_moves.emplace(action, Get_Max_Value(BoardManager::GetInstance()->
-                    GetResultBoard(current_board, action, BoardManager::GetInstance()->
+            possible_moves.emplace(action, Get_Max_Value(BoardManager::Instance()->
+                    GetResultBoard(current_board, action, BoardManager::Instance()->
                     GetCurrentPlayer(current_board)), VALUE_MIN, VALUE_MAX));
             if (possible_moves[action] < min_value)
             {
@@ -175,9 +176,9 @@ auto HardStrategy::Get_Possible_Moves(Board const & current_board) const
     return possible_moves;
 }
 
-auto HardStrategy::GetNextMove(Board const & current_board) noexcept -> Move
+auto HardStrategy::GetNextMove(Utility::Board const & current_board, Keypad * const  /*keypad*/) noexcept -> Move
 {
-    if (BoardManager::GetInstance()->IsTerminal(current_board))
+    if (BoardManager::Instance()->IsTerminal(current_board))
     {
         return {};
     }
@@ -187,15 +188,27 @@ auto HardStrategy::GetNextMove(Board const & current_board) noexcept -> Move
     std::vector<std::pair<Move, Value>> result {possible_moves.begin(), possible_moves.end()};
     for (auto const &[ACTION, VALUE]: result)
     {
-        if (BoardManager::GetInstance()->
-                IsWinner(BoardManager::GetInstance()->GetCurrentPlayer(current_board),
-                         BoardManager::GetInstance()->GetResultBoard(current_board, ACTION,
-                                                                     BoardManager::GetInstance()->
-                                                                             GetCurrentPlayer(current_board))))
+        if (BoardManager::Instance()->
+                IsWinner(BoardManager::Instance()->GetCurrentPlayer(current_board),
+                         BoardManager::Instance()->GetResultBoard(current_board, ACTION,
+                                                                  BoardManager::Instance()->
+                                                                          GetCurrentPlayer(current_board))))
         {
             return ACTION;
         }
     }
     std::sample(result.begin(), result.end(), std::back_inserter(result), 1, GetRNG());
     return result.back().first;
+}
+
+auto HumanStrategy::GetNextMove(Board const & current_board, Keypad * const keypad) noexcept -> Move
+{
+    static Move move;
+
+    do
+    {
+        move = Keypad::ActionFromKey(keypad->GetPressedKey());
+    }
+    while (!BoardManager::Instance()->IsValidAction(current_board, move));
+    return move;
 }

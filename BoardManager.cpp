@@ -28,7 +28,7 @@ BoardManager::BoardManager() noexcept
     }
 }
 
-auto BoardManager::GetInstance() noexcept -> BoardManager *
+auto BoardManager::Instance() noexcept -> BoardManager *
 {
     if (instance == nullptr)
     {

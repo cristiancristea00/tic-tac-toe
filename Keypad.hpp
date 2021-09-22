@@ -13,6 +13,10 @@
 #include <hardware/gpio.h>
 #include <pico/time.h>
 
+#include "IPlayerStrategy.hpp"
+#include "Utility.hpp"
+#include "Move.hpp"
+
 #include <cstdint>
 #include <array>
 
@@ -84,5 +88,37 @@ class Keypad final
      * @return The pressed key
      */
     [[nodiscard]] static auto GetPressedKey() noexcept -> Key;
+
+    /**
+     * Chooses a move based on the pressed key.
+     *
+     * @param key The pressed key
+     * @return The corresponding game move
+     */
+    static auto ActionFromKey(Key key) noexcept -> Move;
+
+    /**
+     * Chooses a player based on the pressed key.
+     *
+     * @param key The pressed key
+     * @return The corresponding game player
+     */
+    static auto PlayerFromKey(Key key) noexcept -> Utility::PlayerSymbol;
+
+    /**
+     * Chooses a move based on the pressed key.
+     *
+     * @param key The pressed key
+     * @return A pair formed of a difficulty and its name
+     */
+    static auto DifficultyFromKey(Key key) noexcept -> std::pair<IPlayerStrategy *, std::string_view>;
+
+    /**
+     * TODO
+     *
+     * @param key
+     * @return
+     */
+    static auto OponentFromKey(Key key) noexcept -> std::string_view;
 };
 
