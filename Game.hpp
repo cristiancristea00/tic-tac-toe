@@ -43,8 +43,7 @@ class Game final
     std::unique_ptr<Player> first_player {std::make_unique<Player>(Utility::PlayerSymbol::UNK, new HumanStrategy)};
     std::unique_ptr<Player> second_player;
 
-    Utility::Value score_X {};
-    Utility::Value score_0 {};
+    std::pair<Utility::Value, Utility::Value> score {0, 0};
 
     std::unique_ptr<LCD_I2C> lcd;
     std::unique_ptr<TM1637> led_segments;
@@ -104,14 +103,14 @@ class Game final
     inline void Update_Scoreboard() const noexcept;
 
     /**
-     * Increases the X player scores and updates the display.
+     * Increases the first player scores and updates the display.
      */
-    inline void Increase_X_Score() noexcept;
+    inline void Increase_First_Player_Score() noexcept;
 
     /**
-     * Increases the 0 player scores and updates the display.
+     * Increases the second player scores and updates the display.
      */
-    inline void Increase_0_Score() noexcept;
+    inline void Increase_Second_Player_Score() noexcept;
 
     /**
      * Resets the scoreboard to its initial values.

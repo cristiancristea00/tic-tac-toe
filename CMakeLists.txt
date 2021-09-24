@@ -17,7 +17,7 @@ pico_generate_pio_header(tic-tac-toe ${CMAKE_CURRENT_LIST_DIR}/TM1637.pio)
 
 # Add program info
 pico_set_program_name(tic-tac-toe "Tic-Tac-Toe LCD Game")
-pico_set_program_version(tic-tac-toe "1.1")
+pico_set_program_version(tic-tac-toe "2.0")
 pico_set_program_url(tic-tac-toe "https://github.com/cristiancristea00/tic-tac-toe")
 pico_set_program_description(tic-tac-toe "Copyright (c) 2021 Cristian Cristea")
 
