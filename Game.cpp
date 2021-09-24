@@ -104,28 +104,27 @@ inline void Game::Print_Winner_And_Update_Score(PlayerSymbol winner) noexcept
     static constexpr size_t AFTER_WIN_DELAY = 5000;
 
     lcd->SetCursor(0, TEXT_START_COLUMN);
-    lcd->PrintString("GAME OVER  ");
+    lcd->PrintString(" GAME OVER  ");
+    lcd->SetCursor(1, TEXT_START_COLUMN);
 
     if (winner == PlayerSymbol::UNK)
     {
-        lcd->SetCursor(1, TEXT_START_COLUMN);
         lcd->PrintString("   TIE     ");
     }
     else
     {
-        lcd->SetCursor(1, TEXT_START_COLUMN);
-        lcd->PrintString("  ");
-        if (winner == PlayerSymbol::X)
+        if (winner == first_player->GetSymbol())
         {
-            Increase_X_Score();
-            lcd->PrintCustomChar(LOCATION_X);
+            Increase_First_Player_Score();
+            lcd->PrintString("  You won ");
         }
         else
         {
-            Increase_0_Score();
-            lcd->PrintCustomChar(LOCATION_0);
+            Increase_Second_Player_Score();
+            lcd->PrintString(" The other ");
+            lcd->SetCursor(2, TEXT_START_COLUMN);
+            lcd->PrintString(" player won");
         }
-        lcd->PrintString(" WINS   ");
     }
 
     sleep_ms(AFTER_WIN_DELAY);
@@ -267,7 +266,7 @@ void Game::Internal_Play() noexcept
 
 inline auto Game::Get_Difficulty() noexcept -> IPlayerStrategy *
 {
-    static IPlayerStrategy * strategy {};
+    static IPlayerStrategy * strategy;
 
     lcd->SetCursor(0, TEXT_START_COLUMN);
     lcd->PrintString("  Choose   ");
@@ -326,10 +325,6 @@ void Game::Key_Poller_Runner() noexcept
             light_on = !light_on;
             lcd->SetBacklight(light_on);
         }
-        else if (key == Key::KEY14)
-        {
-            game->Reset_Scoreboard();
-        }
         else
         {
             multicore_fifo_push_blocking(static_cast<uint32_t>(key));
@@ -339,26 +334,25 @@ void Game::Key_Poller_Runner() noexcept
 
 inline void Game::Update_Scoreboard() const noexcept
 {
-    led_segments->DisplayLeft(score_X, true);
-    led_segments->DisplayRight(score_0, true);
+    led_segments->DisplayLeft(score.first, true);
+    led_segments->DisplayRight(score.second, true);
 }
 
-inline void Game::Increase_X_Score() noexcept
+inline void Game::Increase_First_Player_Score() noexcept
 {
-    ++score_X;
+    ++score.first;
     Update_Scoreboard();
 }
 
-inline void Game::Increase_0_Score() noexcept
+inline void Game::Increase_Second_Player_Score() noexcept
 {
-    ++score_0;
+    ++score.second;
     Update_Scoreboard();
 }
 
 inline void Game::Reset_Scoreboard() noexcept
 {
-    score_X = 0;
-    score_0 = 0;
+    score = {0, 0};
     Update_Scoreboard();
 }
 
@@ -392,7 +386,7 @@ void Game::Choose_Enemy() noexcept
     lcd->PrintString("Play versus ");
     lcd->SetCursor(1, TEXT_START_COLUMN);
     lcd->PrintString("HUMAN or AI");
-    lcd->SetCursor(3, TEXT_START_COLUMN);
+    lcd->SetCursor(2, TEXT_START_COLUMN);
     lcd->PrintString("            ");
 
     do
@@ -419,7 +413,7 @@ void Game::Continue_After_Game() noexcept
     lcd->SetCursor(0, TEXT_START_COLUMN);
     lcd->PrintString("Keep playing");
     lcd->SetCursor(1, TEXT_START_COLUMN);
-    lcd->PrintString(" with the");
+    lcd->PrintString(" with the ");
     lcd->SetCursor(2, TEXT_START_COLUMN);
     lcd->PrintString("same enemy?");
     lcd->SetCursor(3, TEXT_START_COLUMN);
@@ -433,6 +427,7 @@ void Game::Continue_After_Game() noexcept
 
     if (answer == "NO")
     {
+        Reset_Scoreboard();
         Choose_Enemy();
     }
     else
