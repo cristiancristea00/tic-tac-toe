@@ -59,6 +59,6 @@ class Player
      * @param current_board The board to be analysed
      * @return A move
      */
-    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad * keypad) noexcept -> Move;
+    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board) noexcept -> Move;
 };
 

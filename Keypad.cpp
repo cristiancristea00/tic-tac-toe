@@ -11,8 +11,7 @@
 
 using Utility::PlayerSymbol;
 
-Keypad::Keypad(array const & rows, array const & columns) noexcept
-        : rows(rows), columns(columns)
+Keypad::Keypad(array const & rows, array const & columns) noexcept : rows(rows), columns(columns)
 {
     Init();
 }
@@ -57,18 +56,18 @@ auto Keypad::Key_Poller() const noexcept -> Key
             }
         }
     }
-    return Key::UNKOWN;
+    return Key::UNKNOWN;
 }
 
 auto Keypad::GetKeyFromPoller() const noexcept -> Key
 {
-    Key key {Key::UNKOWN};
+    Key key {Key::UNKNOWN};
 
     do
     {
         key = Key_Poller();
     }
-    while (key == Key::UNKOWN);
+    while (key == Key::UNKNOWN);
 
     return key;
 }

@@ -12,12 +12,12 @@
 #include <hardware/regs/rosc.h>
 #include <pico/multicore.h>
 
+#include "IPlayerStrategy.hpp"
 #include "LCD_I2C.hpp"
-#include "Player.hpp"
-#include "Move.hpp"
 #include "TM1637.hpp"
 #include "Keypad.hpp"
-#include "IPlayerStrategy.hpp"
+#include "Player.hpp"
+#include "Move.hpp"
 
 #include <unordered_map>
 #include <algorithm>

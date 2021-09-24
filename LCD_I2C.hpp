@@ -283,7 +283,7 @@ class LCD_I2C final
      * Creates a custom character by specifying the location in memory to be
      * stored (8 locations maximum, starting from 0) and an array of 8 bytes.
      * @code
-     * constexpr uint8_t BELL[8] = {0x04, 0x0E, 0x0E, 0x1F, 0x00, 0x04, 0x00, 0x00};
+     * constexpr std::array BELL = {0x04, 0x0E, 0x0E, 0x1F, 0x00, 0x04, 0x00, 0x00};
      * @endcode
      *
      * @param location The memory address

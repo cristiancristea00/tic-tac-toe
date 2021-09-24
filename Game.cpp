@@ -241,7 +241,7 @@ void Game::Internal_Play() noexcept
             {
                 if (second_player_turn)
                 {
-                    auto move = second_player->GetNextMove(BoardManager::Instance()->GetGameBoard(), keypad.get());
+                    auto move = second_player->GetNextMove(BoardManager::Instance()->GetGameBoard());
                     BoardManager::Instance()->GetGameBoard() = BoardManager::Instance()->GetResultBoard(
                             BoardManager::Instance()->GetGameBoard(), move, second_player->GetSymbol());
                     second_player_turn = false;
@@ -255,7 +255,7 @@ void Game::Internal_Play() noexcept
             {
                 static Move move;
 
-                move = first_player->GetNextMove(BoardManager::Instance()->GetGameBoard(), keypad.get());
+                move = first_player->GetNextMove(BoardManager::Instance()->GetGameBoard());
                 BoardManager::Instance()->GetGameBoard() = BoardManager::Instance()->GetResultBoard(
                         BoardManager::Instance()->GetGameBoard(), move, first_player->GetSymbol());
             }
@@ -310,7 +310,7 @@ inline auto Game::Get_User() const noexcept -> PlayerSymbol
 void Game::Key_Poller_Runner() noexcept
 {
     static bool light_on {false};
-    static Key key {Key::UNKOWN};
+    static Key key {Key::UNKNOWN};
 
     auto * keypad = reinterpret_cast<Keypad *> (multicore_fifo_pop_blocking());
     auto * lcd = reinterpret_cast<LCD_I2C *>(multicore_fifo_pop_blocking());

@@ -10,6 +10,7 @@
 #include "Player.hpp"
 
 using Utility::PlayerSymbol;
+using Utility::Board;
 
 Player::Player(PlayerSymbol symbol, IPlayerStrategy * const strategy) noexcept : symbol(symbol), strategy(strategy) {}
 
@@ -28,7 +29,7 @@ void Player::SetSymbol(PlayerSymbol player_symbol) noexcept
     symbol = player_symbol;
 }
 
-auto Player::GetNextMove(Utility::Board const & current_board, Keypad * const keypad) noexcept -> Move
+auto Player::GetNextMove(Board const & current_board) noexcept -> Move
 {
-    return strategy->GetNextMove(current_board, keypad);
+    return strategy->GetNextMove(current_board);
 }

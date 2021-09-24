@@ -44,7 +44,7 @@ auto IPlayerStrategy::GetRNG() noexcept -> std::mt19937 &
     return random_number_generator;
 }
 
-auto EasyStrategy::GetNextMove(Utility::Board const & current_board, Keypad * const  /*keypad*/) noexcept -> Move
+auto EasyStrategy::GetNextMove(Utility::Board const & current_board) noexcept -> Move
 {
     if (BoardManager::Instance()->IsTerminal(current_board))
     {
@@ -61,7 +61,7 @@ auto EasyStrategy::GetName() const noexcept -> std::string_view
     return "EASY";
 }
 
-auto MediumStrategy::GetNextMove(Utility::Board const & current_board, Keypad * const  /*keypad*/) noexcept -> Move
+auto MediumStrategy::GetNextMove(Utility::Board const & current_board) noexcept -> Move
 {
     if (BoardManager::Instance()->IsTerminal(current_board))
     {
@@ -185,7 +185,7 @@ auto HardStrategy::Get_Possible_Moves(Board const & current_board) const
     return possible_moves;
 }
 
-auto HardStrategy::GetNextMove(Utility::Board const & current_board, Keypad * const  /*keypad*/) noexcept -> Move
+auto HardStrategy::GetNextMove(Utility::Board const & current_board) noexcept -> Move
 {
     if (BoardManager::Instance()->IsTerminal(current_board))
     {
@@ -199,9 +199,8 @@ auto HardStrategy::GetNextMove(Utility::Board const & current_board, Keypad * co
     {
         if (BoardManager::Instance()->
                 IsWinner(BoardManager::Instance()->GetCurrentPlayer(current_board),
-                         BoardManager::Instance()->GetResultBoard(current_board, ACTION,
-                                                                  BoardManager::Instance()->
-                                                                          GetCurrentPlayer(current_board))))
+                         BoardManager::Instance()->GetResultBoard(current_board, ACTION, BoardManager::Instance()->
+                                 GetCurrentPlayer(current_board))))
         {
             return ACTION;
         }
@@ -215,13 +214,13 @@ auto HardStrategy::GetName() const noexcept -> std::string_view
     return "HARD";
 }
 
-auto HumanStrategy::GetNextMove(Board const & current_board, Keypad * const keypad) noexcept -> Move
+auto HumanStrategy::GetNextMove(Utility::Board const & current_board) noexcept -> Move
 {
     static Move move;
 
     do
     {
-        move = Keypad::ActionFromKey(keypad->GetPressedKey());
+        move = Keypad::ActionFromKey(Keypad::GetPressedKey());
     }
     while (!BoardManager::Instance()->IsValidAction(current_board, move));
     return move;

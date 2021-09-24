@@ -1,9 +1,7 @@
 #include <pico/binary_info/code.h>
 
-#include <memory>
-
-#include "Game.hpp"
 #include "Keypad.hpp"
+#include "Game.hpp"
 
 int main()
 {

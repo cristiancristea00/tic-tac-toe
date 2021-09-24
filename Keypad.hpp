@@ -26,7 +26,7 @@ enum class Key
     KEY5, KEY6, KEY7, KEY8,
     KEY9, KEY10, KEY11, KEY12,
     KEY13, KEY14, KEY15, KEY16,
-    UNKOWN
+    UNKNOWN
 };
 
 class Keypad final
