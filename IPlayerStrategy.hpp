@@ -73,7 +73,7 @@ class IPlayerStrategy
      *
      * @return A string representation of the strategy's name
      */
-    [[nodiscard]] virtual auto GetName() const noexcept -> std::string_view = 0;
+    [[gnu::pure]][[nodiscard]] virtual auto GetName() const noexcept -> std::string_view = 0;
 
     /**
      * [Destructor]
@@ -123,7 +123,7 @@ class EasyStrategy final : public IPlayerStrategy
      *
      * @return A string representation of the strategy's name
      */
-    [[nodiscard]] auto GetName() const noexcept -> std::string_view final;
+    [[gnu::pure]][[nodiscard]] auto GetName() const noexcept -> std::string_view final;
 
     /**
      * [Destructor]
@@ -174,7 +174,7 @@ class MediumStrategy final : public IPlayerStrategy
      *
      * @return A string representation of the strategy's name
      */
-    [[nodiscard]] auto GetName() const noexcept -> std::string_view final;
+    [[gnu::pure]][[nodiscard]] auto GetName() const noexcept -> std::string_view final;
 
     /**
      * [Destructor]
@@ -261,7 +261,7 @@ class HardStrategy final : public IPlayerStrategy
      *
      * @return A string representation of the strategy's name
      */
-    [[nodiscard]] auto GetName() const noexcept -> std::string_view final;
+    [[gnu::pure]][[nodiscard]] auto GetName() const noexcept -> std::string_view final;
 
     /**
      * [Destructor]
@@ -311,7 +311,7 @@ class HumanStrategy final : public IPlayerStrategy
      *
      * @return A string representation of the strategy's name
      */
-    [[nodiscard]] auto GetName() const noexcept -> std::string_view final;
+    [[gnu::pure]][[nodiscard]] auto GetName() const noexcept -> std::string_view final;
 
     /**
      * [Destructor]

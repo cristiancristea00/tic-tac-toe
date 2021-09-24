@@ -119,7 +119,7 @@ class BoardManager final
      * @param action The action to be checked
      * @return True or False
      */
-    auto IsValidAction(Utility::Board const & current_board, Move const & action) noexcept -> bool;
+    [[gnu::pure]] auto IsValidAction(Utility::Board const & current_board, Move const & action) noexcept -> bool;
 
     /**
      * Gets the score for a terminal board.
@@ -136,7 +136,7 @@ class BoardManager final
      * @param action The move to be made
      * @return The resulting board
      */
-    auto GetResultBoard(Utility::Board const & current_board, Move const & action,
+    [[gnu::pure]] auto GetResultBoard(Utility::Board const & current_board, Move const & action,
                         Utility::PlayerSymbol player) noexcept -> Utility::Board;
 
     /**

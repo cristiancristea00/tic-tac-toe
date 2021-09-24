@@ -21,7 +21,7 @@ auto Move::GetColumn() const noexcept -> int8_t
     return column;
 }
 
-auto operator==(Move const & lhs, Move const & rhs) noexcept -> bool
+[[gnu::pure]] auto operator==(Move const & lhs, Move const & rhs) noexcept -> bool
 {
     return std::tie(lhs.row, lhs.column) == std::tie(rhs.row, rhs.column);
 }

@@ -38,14 +38,14 @@ class Move
      *
      * @return Row value
      */
-    [[nodiscard]] auto GetRow() const noexcept -> int8_t;
+    [[gnu::pure]][[nodiscard]] auto GetRow() const noexcept -> int8_t;
 
     /**
      * Getter function for the column member.
      *
      * @return Column value
      */
-    [[nodiscard]] auto GetColumn() const noexcept -> int8_t;
+    [[gnu::pure]][[nodiscard]] auto GetColumn() const noexcept -> int8_t;
 
     /**
      * [Equality operator] Checks if the Move objects are the same.
@@ -58,7 +58,7 @@ class Move
 
     struct Hash
     {
-        auto operator()(Move const & action) const noexcept -> std::size_t;
+        [[gnu::pure]] auto operator()(Move const & action) const noexcept -> std::size_t;
     };
 };
 

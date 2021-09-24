@@ -41,7 +41,6 @@ void Game::Init_Second_Core() const noexcept
     multicore_launch_core1(Key_Poller_Runner);
     multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(keypad.get()));
     multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(lcd.get()));
-    multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(this));
 }
 
 auto Game::LCD_Char_Location_From_Player_Symbol(PlayerSymbol symbol) noexcept -> LCD_I2C::byte
@@ -315,7 +314,6 @@ void Game::Key_Poller_Runner() noexcept
 
     auto * keypad = reinterpret_cast<Keypad *> (multicore_fifo_pop_blocking());
     auto * lcd = reinterpret_cast<LCD_I2C *>(multicore_fifo_pop_blocking());
-    auto * game = reinterpret_cast<Game *>(multicore_fifo_pop_blocking());
 
     while (true)
     {

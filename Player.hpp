@@ -37,14 +37,14 @@ class Player
      *
      * @return The player's symbol
      */
-    [[nodiscard]] auto GetSymbol() const noexcept -> Utility::PlayerSymbol;
+    [[gnu::pure]][[nodiscard]] auto GetSymbol() const noexcept -> Utility::PlayerSymbol;
 
     /**
      * Gets the player's strategy's name.
      *
      * @return A string representation of the strategy's name
      */
-    [[nodiscard]] auto GetStrategyName() const noexcept -> std::string_view;
+    [[gnu::pure]][[nodiscard]] auto GetStrategyName() const noexcept -> std::string_view;
 
     /**
      * Sets the player's symbol.
