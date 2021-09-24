@@ -56,6 +56,10 @@ auto EasyStrategy::GetNextMove(Utility::Board const & current_board, Keypad * co
     std::sample(actions.begin(), actions.end(), std::back_inserter(actions), 1, GetRNG());
     return actions.back();
 }
+auto EasyStrategy::GetName() const noexcept -> std::string_view
+{
+    return "EASY";
+}
 
 auto MediumStrategy::GetNextMove(Utility::Board const & current_board, Keypad * const  /*keypad*/) noexcept -> Move
 {
@@ -80,6 +84,11 @@ auto MediumStrategy::GetNextMove(Utility::Board const & current_board, Keypad * 
 
     std::sample(actions.begin(), actions.end(), std::back_inserter(actions), 1, GetRNG());
     return actions.back();
+}
+
+auto MediumStrategy::GetName() const noexcept -> std::string_view
+{
+    return "MEDIUM";
 }
 
 auto HardStrategy::Get_Min_Value(Board const & current_board, Value alpha, Value beta) const noexcept -> Value
@@ -201,6 +210,11 @@ auto HardStrategy::GetNextMove(Utility::Board const & current_board, Keypad * co
     return result.back().first;
 }
 
+auto HardStrategy::GetName() const noexcept -> std::string_view
+{
+    return "HARD";
+}
+
 auto HumanStrategy::GetNextMove(Board const & current_board, Keypad * const keypad) noexcept -> Move
 {
     static Move move;
@@ -211,4 +225,9 @@ auto HumanStrategy::GetNextMove(Board const & current_board, Keypad * const keyp
     }
     while (!BoardManager::Instance()->IsValidAction(current_board, move));
     return move;
+}
+
+auto HumanStrategy::GetName() const noexcept -> std::string_view
+{
+    return "HUMAN";
 }

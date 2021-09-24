@@ -131,45 +131,69 @@ inline void Game::Print_Winner_And_Update_Score(PlayerSymbol winner) noexcept
     sleep_ms(AFTER_WIN_DELAY);
 }
 
-inline void Game::Print_User_Turn_Info(PlayerSymbol current_player) const noexcept
+inline void Game::Print_First_Player_Info() const noexcept
 {
     lcd->SetCursor(0, TEXT_START_COLUMN);
-    lcd->PrintString(" Your turn");
+    lcd->PrintString(" Your turn ");
     lcd->SetCursor(1, TEXT_START_COLUMN);
     lcd->PrintString(" Play as ");
-    if (current_player == PlayerSymbol::X)
+    if (first_player->GetSymbol() == PlayerSymbol::X)
     {
         lcd->PrintCustomChar(LOCATION_X);
     }
-    else if (current_player == PlayerSymbol::O)
+    else
     {
         lcd->PrintCustomChar(LOCATION_0);
     }
     lcd->PrintCustomChar(LOCATION_SPACE);
+    lcd->SetCursor(2, TEXT_START_COLUMN);
+    lcd->PrintString("          ");
 }
 
-inline void Game::Print_Computer_Info() const noexcept
+inline void Game::Print_Second_Player_Info() const noexcept
 {
     static constexpr size_t DOTS_START_COLUMN = 16;
     static constexpr size_t DELAY = 200;
 
-    lcd->SetCursor(0, TEXT_START_COLUMN);
-    lcd->PrintString("  Computer");
-    lcd->SetCursor(1, TEXT_START_COLUMN);
-    lcd->PrintString("thinking   ");
-    lcd->SetCursor(1, DOTS_START_COLUMN);
-    sleep_ms(DELAY);
-    lcd->PrintString(".");
-    sleep_ms(DELAY);
-    lcd->PrintString(".");
-    sleep_ms(DELAY);
-    lcd->PrintString(".");
-    sleep_ms(DELAY);
+    if (second_player->GetStrategyName() != "HUMAN")
+    {
+        lcd->SetCursor(0, TEXT_START_COLUMN);
+        lcd->PrintString("  Computer");
+        lcd->SetCursor(1, TEXT_START_COLUMN);
+        lcd->PrintString("thinking   ");
+        lcd->SetCursor(1, DOTS_START_COLUMN);
+        sleep_ms(DELAY);
+        lcd->PrintString(".");
+        sleep_ms(DELAY);
+        lcd->PrintString(".");
+        sleep_ms(DELAY);
+        lcd->PrintString(".");
+        sleep_ms(DELAY);
+    }
+    else
+    {
+        lcd->SetCursor(0, TEXT_START_COLUMN);
+        lcd->PrintString("The other's");
+        lcd->SetCursor(1, TEXT_START_COLUMN);
+        lcd->PrintString("player turn");
+        lcd->SetCursor(2, TEXT_START_COLUMN);
+        lcd->PrintString(" Play as ");
+        if (second_player->GetSymbol() == PlayerSymbol::X)
+        {
+            lcd->PrintCustomChar(LOCATION_X);
+        }
+        else
+        {
+            lcd->PrintCustomChar(LOCATION_0);
+        }
+    }
 }
 
 void Game::Internal_Play() noexcept
 {
     static bool second_player_turn {false};
+
+    first_player->SetSymbol(PlayerSymbol::UNK);
 
     while (true)
     {
@@ -203,15 +227,16 @@ void Game::Internal_Play() noexcept
                 Print_Winner_And_Update_Score(BoardManager::Instance()->GetWinner(BoardManager::Instance()->GetGameBoard()));
                 BoardManager::Instance()->ResetBoard();
                 Draw_Board_State();
+                Continue_After_Game();
                 break;
             }
             if (first_player->GetSymbol() == current_player)
             {
-                Print_User_Turn_Info(current_player);
+                Print_First_Player_Info();
             }
             else
             {
-                Print_Computer_Info();
+                Print_Second_Player_Info();
             }
 
             if (first_player->GetSymbol() != current_player)
@@ -242,7 +267,7 @@ void Game::Internal_Play() noexcept
 
 inline auto Game::Get_Difficulty() noexcept -> IPlayerStrategy *
 {
-    static std::pair<IPlayerStrategy *, std::string_view> difficulty {};
+    static IPlayerStrategy * strategy {};
 
     lcd->SetCursor(0, TEXT_START_COLUMN);
     lcd->PrintString("  Choose   ");
@@ -253,12 +278,11 @@ inline auto Game::Get_Difficulty() noexcept -> IPlayerStrategy *
 
     do
     {
-        difficulty = Keypad::DifficultyFromKey(keypad->GetPressedKey());
+        strategy = Keypad::DifficultyFromKey(keypad->GetPressedKey());
     }
-    while (difficulty.first == nullptr);
+    while (strategy == nullptr);
 
-    Print_Difficulty(difficulty.second);
-    return difficulty.first;
+    return strategy;
 }
 
 inline auto Game::Get_User() const noexcept -> PlayerSymbol
@@ -266,13 +290,15 @@ inline auto Game::Get_User() const noexcept -> PlayerSymbol
     static PlayerSymbol choice;
 
     lcd->SetCursor(0, TEXT_START_COLUMN);
-    lcd->PrintString("  Choose");
+    lcd->PrintString("  Choose    ");
     lcd->SetCursor(1, TEXT_START_COLUMN);
     lcd->PrintString("  ");
     lcd->PrintCustomChar(LOCATION_X);
     lcd->PrintString(" or ");
     lcd->PrintCustomChar(LOCATION_0);
     lcd->PrintString("   ");
+    lcd->SetCursor(2, TEXT_START_COLUMN);
+    lcd->PrintString("           ");
 
     do
     {
@@ -343,7 +369,7 @@ inline void Game::Reset_Scoreboard() noexcept
     led_segments->ColonOn();
     Update_Scoreboard();
 
-    Choose_Oponent();
+    Choose_Enemy();
 
     while (true)
     {
@@ -358,18 +384,20 @@ inline void Game::Print_Difficulty(std::string_view diff) noexcept
     lcd->PrintString(diff);
 }
 
-void Game::Choose_Oponent() noexcept
+void Game::Choose_Enemy() noexcept
 {
     static std::string_view choice {};
-    
+
     lcd->SetCursor(0, TEXT_START_COLUMN);
-    lcd->PrintString("Play versus");
+    lcd->PrintString("Play versus ");
     lcd->SetCursor(1, TEXT_START_COLUMN);
     lcd->PrintString("HUMAN or AI");
+    lcd->SetCursor(3, TEXT_START_COLUMN);
+    lcd->PrintString("            ");
 
     do
     {
-        choice = Keypad::OponentFromKey(keypad->GetPressedKey());
+        choice = Keypad::EnemyFromKey(keypad->GetPressedKey());
     }
     while (choice.empty());
 
@@ -380,5 +408,39 @@ void Game::Choose_Oponent() noexcept
     else
     {
         second_player = std::make_unique<Player>(PlayerSymbol::UNK, Get_Difficulty());
+        Print_Difficulty(second_player->GetStrategyName());
+    }
+}
+
+void Game::Continue_After_Game() noexcept
+{
+    static std::string_view answer {};
+
+    lcd->SetCursor(0, TEXT_START_COLUMN);
+    lcd->PrintString("Keep playing");
+    lcd->SetCursor(1, TEXT_START_COLUMN);
+    lcd->PrintString(" with the");
+    lcd->SetCursor(2, TEXT_START_COLUMN);
+    lcd->PrintString("same enemy?");
+    lcd->SetCursor(3, TEXT_START_COLUMN);
+    lcd->PrintString("            ");
+
+    do
+    {
+        answer = Keypad::AnswerFromKey(keypad->GetPressedKey());
+    }
+    while (answer.empty());
+
+    if (answer == "NO")
+    {
+        Choose_Enemy();
+    }
+    else
+    {
+        if (second_player->GetStrategyName() != "HUMAN")
+        {
+            Print_Difficulty(second_player->GetStrategyName());
+        }
+        return;
     }
 }

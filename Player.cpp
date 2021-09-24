@@ -18,6 +18,11 @@ auto Player::GetSymbol() const noexcept -> PlayerSymbol
     return symbol;
 }
 
+auto Player::GetStrategyName() const noexcept -> std::string_view
+{
+    return strategy->GetName();
+}
+
 void Player::SetSymbol(PlayerSymbol player_symbol) noexcept
 {
     symbol = player_symbol;

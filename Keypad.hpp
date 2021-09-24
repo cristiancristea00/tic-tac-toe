@@ -109,16 +109,24 @@ class Keypad final
      * Chooses a move based on the pressed key.
      *
      * @param key The pressed key
-     * @return A pair formed of a difficulty and its name
+     * @return The difficulty
      */
-    static auto DifficultyFromKey(Key key) noexcept -> std::pair<IPlayerStrategy *, std::string_view>;
+    static auto DifficultyFromKey(Key key) noexcept -> IPlayerStrategy *;
 
     /**
-     * TODO
+     * Chooses an opponent based on the pressed key.
      *
-     * @param key
-     * @return
+     * @param key The pressed key
+     * @return A string version of the opponent
      */
-    static auto OponentFromKey(Key key) noexcept -> std::string_view;
+    static auto EnemyFromKey(Key key) noexcept -> std::string_view;
+
+    /**
+     * Chooses an answer based on the pressed key.
+     *
+     * @param key The pressed key
+     * @return A string version of the answer
+     */
+    static auto AnswerFromKey(Key key) noexcept -> std::string_view;
 };
 

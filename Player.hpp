@@ -25,32 +25,39 @@ class Player
  public:
 
     /**
-     * TODO
+     * [Constructor]
      *
-     * @param symbol
-     * @param strategy
+     * @param symbol The player's symbol
+     * @param strategy The player's game strategy
      */
     Player(Utility::PlayerSymbol symbol, IPlayerStrategy * strategy) noexcept;
 
     /**
-     * TODO
+     * Gets the player's symbol.
      *
-     * @return
+     * @return The player's symbol
      */
     [[nodiscard]] auto GetSymbol() const noexcept -> Utility::PlayerSymbol;
 
     /**
-     * TODO
+     * Gets the player's strategy's name.
      *
-     * @param player_symbol
+     * @return A string representation of the strategy's name
+     */
+    [[nodiscard]] auto GetStrategyName() const noexcept -> std::string_view;
+
+    /**
+     * Sets the player's symbol.
+     *
+     * @param player_symbol The new symbol
      */
     void SetSymbol(Utility::PlayerSymbol player_symbol) noexcept;
 
     /**
-     * TODO
+     * Selects a move according to the current board configuration.
      *
-     * @param current_board
-     * @return
+     * @param current_board The board to be analysed
+     * @return A move
      */
     [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad * keypad) noexcept -> Move;
 };

@@ -66,7 +66,14 @@ class IPlayerStrategy
      * @param current_board The board to be analysed
      * @return A move
      */
-    [[nodiscard]] virtual auto GetNextMove(Utility::Board const & current_board, Keypad *) noexcept -> Move = 0;
+    [[nodiscard]] virtual auto GetNextMove(Utility::Board const & current_board, Keypad * keypad) noexcept -> Move = 0;
+
+    /**
+     * Gets the strategy's name.
+     *
+     * @return A string representation of the strategy's name
+     */
+    [[nodiscard]] virtual auto GetName() const noexcept -> std::string_view = 0;
 
     /**
      * [Destructor]
@@ -109,7 +116,14 @@ class EasyStrategy final : public IPlayerStrategy
      * @param current_board The board to be analysed
      * @return A random move
      */
-    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad *) noexcept -> Move final;
+    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad * keypad) noexcept -> Move final;
+
+    /**
+     * Gets the strategy's name.
+     *
+     * @return A string representation of the strategy's name
+     */
+    [[nodiscard]] auto GetName() const noexcept -> std::string_view final;
 
     /**
      * [Destructor]
@@ -153,7 +167,14 @@ class MediumStrategy final : public IPlayerStrategy
      * @param current_board The board to be analysed
      * @return A somewhat good move
      */
-    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad *) noexcept -> Move final;
+    [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad * keypad) noexcept -> Move final;
+
+    /**
+     * Gets the strategy's name.
+     *
+     * @return A string representation of the strategy's name
+     */
+    [[nodiscard]] auto GetName() const noexcept -> std::string_view final;
 
     /**
      * [Destructor]
@@ -236,6 +257,13 @@ class HardStrategy final : public IPlayerStrategy
     [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad * keypad) noexcept -> Move final;
 
     /**
+     * Gets the strategy's name.
+     *
+     * @return A string representation of the strategy's name
+     */
+    [[nodiscard]] auto GetName() const noexcept -> std::string_view final;
+
+    /**
      * [Destructor]
      */
     ~HardStrategy() noexcept final = default;
@@ -271,12 +299,19 @@ class HumanStrategy final : public IPlayerStrategy
     HumanStrategy() noexcept = default;
 
     /**
-     * TODO - Implement and comment
+     * Returns a move based on the pressed key.
      *
      * @param current_board The board to be analysed
-     * @return A somewhat good move
+     * @return The input move
      */
     [[nodiscard]] auto GetNextMove(Utility::Board const & current_board, Keypad * keypad) noexcept -> Move final;
+
+    /**
+     * Gets the strategy's name.
+     *
+     * @return A string representation of the strategy's name
+     */
+    [[nodiscard]] auto GetName() const noexcept -> std::string_view final;
 
     /**
      * [Destructor]

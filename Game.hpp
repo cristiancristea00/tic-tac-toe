@@ -82,17 +82,16 @@ class Game final
     inline void Print_Winner_And_Update_Score(Utility::PlayerSymbol winner) noexcept;
 
     /**
-     * Informs the user that it's their turn by printing on the LCD what symbol
+     * Informs the first player that it's their turn by printing on the LCD what symbol
      * is using.
-     *
-     * @param current_player The current player
      */
-    inline void Print_User_Turn_Info(Utility::PlayerSymbol current_player) const noexcept;
+    inline void Print_First_Player_Info() const noexcept;
 
     /**
-     * Prints on the LCD that it's the computer turn.
+     * Informs the second player that it's their turn by printing on the LCD
+     * what symbol is using if it's human or a message otherwise.
      */
-    inline void Print_Computer_Info() const noexcept;
+    inline void Print_Second_Player_Info() const noexcept;
 
     /**
      * Main game logic
@@ -145,9 +144,15 @@ class Game final
     [[noreturn]] static void Key_Poller_Runner() noexcept;
 
     /**
-     * TODO
+     * Prompts the user to select between a Human or AI opponent.
      */
-    void Choose_Oponent() noexcept;
+    void Choose_Enemy() noexcept;
+
+    /**
+     * Prompts the user to select if they want to continue playing with the same
+     * opponent.
+     */
+    void Continue_After_Game() noexcept;
 
  public:
 

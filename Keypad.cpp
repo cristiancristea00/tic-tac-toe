@@ -34,7 +34,7 @@ inline void Keypad::Init() noexcept
 auto Keypad::Key_Poller() const noexcept -> Key
 {
     static auto last_debounce_time = to_ms_since_boot(get_absolute_time());
-    static constexpr auto DELAY_TIME = 100;
+    static constexpr auto DELAY_TIME = 150;
 
     if ((to_ms_since_boot(get_absolute_time()) - last_debounce_time) > DELAY_TIME)
     {
@@ -118,22 +118,22 @@ auto Keypad::PlayerFromKey(Key key) noexcept -> PlayerSymbol
     }
 }
 
-auto Keypad::DifficultyFromKey(Key key) noexcept -> std::pair<IPlayerStrategy *, std::string_view>
+auto Keypad::DifficultyFromKey(Key key) noexcept -> IPlayerStrategy *
 {
     switch (key)
     {
         case Key::KEY4:
-            return {new EasyStrategy, "EASY"};
+            return new EasyStrategy;
         case Key::KEY8:
-            return {new MediumStrategy, "MEDIUM"};
+            return new MediumStrategy;
         case Key::KEY12:
-            return {new HardStrategy, "HARD"};
+            return new HardStrategy;
         default:
-            return {nullptr, {}};
+            return nullptr;
     }
 }
 
-auto Keypad::OponentFromKey(Key key) noexcept -> std::string_view
+auto Keypad::EnemyFromKey(Key key) noexcept -> std::string_view
 {
     switch (key)
     {
@@ -141,6 +141,19 @@ auto Keypad::OponentFromKey(Key key) noexcept -> std::string_view
             return "HUMAN";
         case Key::KEY16:
             return "AI";
+        default:
+            return {};
+    }
+}
+
+auto Keypad::AnswerFromKey(Key key) noexcept -> std::string_view
+{
+    switch (key)
+    {
+        case Key::KEY15:
+            return "YES";
+        case Key::KEY16:
+            return "NO";
         default:
             return {};
     }
