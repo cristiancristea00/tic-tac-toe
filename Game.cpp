@@ -41,6 +41,7 @@ void Game::Init_Second_Core() const noexcept
     multicore_launch_core1(Key_Poller_Runner);
     multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(keypad.get()));
     multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(lcd.get()));
+    multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(led_segments.get()));
 }
 
 auto Game::LCD_Char_Location_From_Player_Symbol(PlayerSymbol symbol) noexcept -> LCD_I2C::byte
@@ -309,11 +310,13 @@ inline auto Game::Get_User() const noexcept -> PlayerSymbol
 
 void Game::Key_Poller_Runner() noexcept
 {
-    static bool light_on {false};
-    static Key key {Key::UNKNOWN};
+    bool light_on {false};
+    Key key {Key::UNKNOWN};
+    uint8_t brightness {0};
 
     auto * keypad = reinterpret_cast<Keypad *> (multicore_fifo_pop_blocking());
     auto * lcd = reinterpret_cast<LCD_I2C *>(multicore_fifo_pop_blocking());
+    auto * led_segments = reinterpret_cast<TM1637 *>(multicore_fifo_pop_blocking());
 
     while (true)
     {
@@ -322,6 +325,11 @@ void Game::Key_Poller_Runner() noexcept
         {
             light_on = !light_on;
             lcd->SetBacklight(light_on);
+        }
+        else if (key == Key::KEY14)
+        {
+            brightness = (++brightness) % TM1637::MAX_BRIGHTNESS;
+            led_segments->SetBrightness(brightness);
         }
         else
         {

@@ -22,11 +22,12 @@ class TM1637
     using byte = uint8_t;
     using data = uint32_t;
 
+    static constexpr byte MAX_BRIGHTNESS = 7;
+
  private:
 
     static constexpr byte BYTE_SIZE = 8;
     static constexpr byte MAX_DIGITS = 4;
-    static constexpr byte MAX_BRIGHTNESS = 7;
     static constexpr byte BRIGHTNESS_BASE = 0x88;
     static constexpr byte WRITE_MODE = 0x40;
     static constexpr byte WRITE_ADDRESS = 0xC0;
@@ -34,9 +35,9 @@ class TM1637
 
     static constexpr std::array DIGIT_TO_SEGMENTS {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F};
 
-    bool is_colon {};
-    byte brightness {};
-    data current_segments {};
+    bool is_colon {false};
+    byte brightness {0};
+    data current_segments {0};
 
     PIO pio {};
     byte state_machine {};
