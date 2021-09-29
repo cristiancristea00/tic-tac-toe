@@ -31,14 +31,16 @@ class Game final
 {
  private:
 
-    static constexpr LCD_I2C::byte LOCATION_LEFT = 0;
-    static constexpr LCD_I2C::byte LOCATION_CENTER = 1;
-    static constexpr LCD_I2C::byte LOCATION_RIGHT = 2;
-    static constexpr LCD_I2C::byte LOCATION_X = 3;
-    static constexpr LCD_I2C::byte LOCATION_0 = 4;
-    static constexpr LCD_I2C::byte LOCATION_SPACE = 5;
+    using byte = uint8_t;
 
-    static constexpr LCD_I2C::byte TEXT_START_COLUMN = 8;
+    static constexpr byte LOCATION_LEFT = 0;
+    static constexpr byte LOCATION_CENTER = 1;
+    static constexpr byte LOCATION_RIGHT = 2;
+    static constexpr byte LOCATION_X = 3;
+    static constexpr byte LOCATION_0 = 4;
+    static constexpr byte LOCATION_SPACE = 5;
+
+    static constexpr byte TEXT_START_COLUMN = 8;
 
     std::unique_ptr<Player> first_player {std::make_unique<Player>(Utility::PlayerSymbol::UNK, new HumanStrategy)};
     std::unique_ptr<Player> second_player;
@@ -61,7 +63,7 @@ class Game final
      * @param symbol The piece to be converted
      * @return The resulting memory location
      */
-    inline static auto LCD_Char_Location_From_Player_Symbol(Utility::PlayerSymbol symbol) noexcept -> LCD_I2C::byte;
+    inline static auto LCD_Char_Location_From_Player_Symbol(Utility::PlayerSymbol symbol) noexcept -> byte;
 
     /**
      * Draws on the LCD the game board.

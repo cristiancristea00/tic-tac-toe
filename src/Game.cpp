@@ -19,7 +19,7 @@ Game::Game(LCD_I2C * lcd, TM1637 * led_segments, Keypad * keypad) noexcept
 {
     static constexpr size_t NO_SYMBOLS = 6;
 
-    static constexpr std::array<std::array<LCD_I2C::byte, LCD_I2C::CUSTOM_SYMBOL_SIZE>, NO_SYMBOLS> CUSTOM_SYMBOLS
+    static constexpr std::array<std::array<byte, LCD_I2C::CUSTOM_SYMBOL_SIZE>, NO_SYMBOLS> CUSTOM_SYMBOLS
             {{{0x07, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x07}, /* LEFT */
               {0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x1F}, /* CENTER */
               {0x1C, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x1C}, /* RIGHT */
@@ -44,7 +44,7 @@ void Game::Init_Second_Core() const noexcept
     multicore_fifo_push_blocking(reinterpret_cast<uint32_t>(led_segments.get()));
 }
 
-auto Game::LCD_Char_Location_From_Player_Symbol(PlayerSymbol symbol) noexcept -> LCD_I2C::byte
+auto Game::LCD_Char_Location_From_Player_Symbol(PlayerSymbol symbol) noexcept -> byte
 {
     switch (symbol)
     {
@@ -59,10 +59,10 @@ auto Game::LCD_Char_Location_From_Player_Symbol(PlayerSymbol symbol) noexcept ->
 
 inline void Game::Draw_Game() const noexcept
 {
-    static constexpr LCD_I2C::byte FIRST_COLUMN = 0;
-    static constexpr LCD_I2C::byte SECOND_COLUMN = 2;
-    static constexpr LCD_I2C::byte THIRD_COLUMN = 4;
-    static constexpr LCD_I2C::byte FOURTH_COLUMN = 6;
+    static constexpr byte FIRST_COLUMN = 0;
+    static constexpr byte SECOND_COLUMN = 2;
+    static constexpr byte THIRD_COLUMN = 4;
+    static constexpr byte FOURTH_COLUMN = 6;
 
     #pragma GCC unroll 3
     for (size_t row = 0; row < BOARD_SIZE; ++row)
@@ -80,9 +80,9 @@ inline void Game::Draw_Game() const noexcept
 
 inline void Game::Draw_Board_State() const noexcept
 {
-    static constexpr LCD_I2C::byte FIRST_COLUMN = 1;
-    static constexpr LCD_I2C::byte SECOND_COLUMN = 3;
-    static constexpr LCD_I2C::byte THIRD_COLUMN = 5;
+    static constexpr byte FIRST_COLUMN = 1;
+    static constexpr byte SECOND_COLUMN = 3;
+    static constexpr byte THIRD_COLUMN = 5;
 
     #pragma GCC unroll 3
     for (size_t row = 0; row < BOARD_SIZE; ++row)
