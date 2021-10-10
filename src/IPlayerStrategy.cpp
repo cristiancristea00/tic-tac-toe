@@ -23,15 +23,15 @@ inline auto IPlayerStrategy::Get_Random_Seed() noexcept -> uint32_t
     static constexpr size_t NO_OF_ROUNDS = 16;
     static constexpr size_t NO_OF_BYTES = 8;
 
-    uint32_t random = FNV_OFFSET_BASIS;
     uint8_t next_byte = 0;
+    uint32_t random = FNV_OFFSET_BASIS;
     auto * volatile random_reg = reinterpret_cast<uint32_t *>(ROSC_BASE + ROSC_RANDOMBIT_OFFSET);
 
     for (size_t i = 0; i < NO_OF_ROUNDS; i++)
     {
         for (size_t k = 0; k < NO_OF_BYTES; k++)
         {
-            next_byte = (next_byte << 1) | (*random_reg & 1);
+            next_byte = static_cast<uint8_t>((next_byte << 1) | (*random_reg & 1));
         }
         random ^= next_byte;
         random *= FNV_PRIME;

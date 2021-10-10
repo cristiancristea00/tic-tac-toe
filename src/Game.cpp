@@ -28,7 +28,7 @@ Game::Game(LCD_I2C * lcd, TM1637 * led_segments, Keypad * keypad) noexcept
               {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}  /* ' ' */}};
 
     # pragma GCC unroll 6
-    for (size_t location = 0; location < NO_SYMBOLS; ++location)
+    for (byte location = 0; location < NO_SYMBOLS; ++location)
     {
         lcd->CreateCustomChar(location, CUSTOM_SYMBOLS.at(location));
     }
@@ -65,7 +65,7 @@ inline void Game::Draw_Game() const noexcept
     static constexpr byte FOURTH_COLUMN = 6;
 
     #pragma GCC unroll 3
-    for (size_t row = 0; row < BOARD_SIZE; ++row)
+    for (byte row = 0; row < BOARD_SIZE; ++row)
     {
         lcd->SetCursor(row, FIRST_COLUMN);
         lcd->PrintCustomChar(LOCATION_LEFT);
@@ -85,7 +85,7 @@ inline void Game::Draw_Board_State() const noexcept
     static constexpr byte THIRD_COLUMN = 5;
 
     #pragma GCC unroll 3
-    for (size_t row = 0; row < BOARD_SIZE; ++row)
+    for (byte row = 0; row < BOARD_SIZE; ++row)
     {
         lcd->SetCursor(row, FIRST_COLUMN);
         lcd->PrintCustomChar(LCD_Char_Location_From_Player_Symbol(
